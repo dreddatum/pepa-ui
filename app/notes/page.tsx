@@ -82,6 +82,7 @@ export default function NotesPage() {
   const [recording, setRecording] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [newNote, setNewNote] = useState({ client: '', property: '', transcript: '' })
+  const [liveTranscript, setLiveTranscript] = useState('')
   const [generating, setGenerating] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -95,7 +96,7 @@ export default function NotesPage() {
   const startRecording = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
-      alert('Váš prohlížeč nepodporuje hlasové nahrávání. Použijte Chrome.')
+      alert('Použijte Chrome.')
       return
     }
 
@@ -104,26 +105,42 @@ export default function NotesPage() {
     recognition.continuous = true
     recognition.interimResults = true
 
+    let finalTranscript = ''
+
     recognition.onresult = (event) => {
-      let transcript = ''
+      finalTranscript = ''
       for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript
+        finalTranscript += event.results[i][0].transcript + ' '
       }
-      setNewNote(p => ({ ...p, transcript }))
+      // Zobraz živý přepis pod tlačítkem
+      setLiveTranscript(finalTranscript)
     }
 
     recognition.onerror = (event) => {
       console.error('Speech error:', event.error)
       setRecording(false)
+      if (timerRef.current) clearInterval(timerRef.current)
     }
 
-    recognition.onend = () => setRecording(false)
+    recognition.onend = () => {
+      setRecording(false)
+      if (timerRef.current) clearInterval(timerRef.current)
+      // Automaticky rozpoznej jméno klienta z přepisu
+      const lines = finalTranscript.trim().split(/[.,]/)
+      const clientGuess = lines[0]?.trim() || ''
+      setNewNote({
+        client: clientGuess.length < 40 ? clientGuess : '',
+        property: '',
+        transcript: finalTranscript.trim(),
+      })
+      setLiveTranscript('')
+      setShowForm(true) // Otevři formulář AŽ po dokončení
+    }
 
     recognitionRef.current = recognition
     recognition.start()
     setRecording(true)
     setSeconds(0)
-    setShowForm(true)
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
   }
@@ -216,6 +233,11 @@ export default function NotesPage() {
               <p className="text-sm text-gray-400">Nahrát poznámku ze schůzky</p>
               <p className="text-xs text-gray-600 mt-1">Klikni pro start nahrávání</p>
             </div>
+          )}
+          {recording && liveTranscript && (
+            <p className="text-sm text-gray-400 mt-3 italic max-w-md mx-auto">
+              {liveTranscript}
+            </p>
           )}
         </div>
 

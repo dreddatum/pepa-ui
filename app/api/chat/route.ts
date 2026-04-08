@@ -39,14 +39,12 @@ function getChartUrl(message: string): string | null {
 }
 
 function clean(text: string): string {
-  // Odstraň vše od Graf sekce
-  const cutAt = ['<h2>📈', '<h2>📊 Graf', '[CHART:']
+  const cutAt = ['<h2>📈', '<h2>📊 Graf']
   let result = text
   for (const cut of cutAt) {
     const i = result.indexOf(cut)
     if (i > 50) result = result.substring(0, i)
   }
-  // Odstraň zbytky na konci
   return result.replace(/[}\]\s]+$/, '').trim()
 }
 
@@ -65,10 +63,43 @@ export async function POST(request: NextRequest) {
     let data: Record<string, unknown>
     try { data = JSON.parse(text) as Record<string, unknown> } catch { return NextResponse.json({ response: text }) }
 
-    let output = clean(String(data.response ?? data.output ?? data.message ?? ''))
+    const raw = String(data.response ?? data.output ?? data.message ?? '')
 
-    // Přidej graf pokud chce vizualizaci
-    if (/graf|vizualiz|znazorn|graficky/i.test(message)) {
+    // Extrahuj CHART z n8n odpovědi
+    const chartMatch = raw.match(/\[CHART:(\{[^}]+\}(?:,\{[^}]+\})*|\{[\s\S]+?\})\]/)
+    console.log('CHART MATCH:', chartMatch?.[1]?.substring(0, 50))
+    console.log('RAW CONTAINS CHART:', raw.includes('[CHART:'))
+    console.log('CHART MATCH RESULT:', chartMatch ? 'FOUND' : 'NOT FOUND')
+
+    // Vyčisti text
+    let output = clean(raw)
+
+    if (chartMatch) {
+      try {
+        const chartData = JSON.parse(chartMatch[1]) as {
+          type?: string
+          data: { name: string; value: number }[]
+        }
+        const cfg = {
+          type: chartData.type || 'bar',
+          data: {
+            labels: chartData.data.map((d: { name: string }) => d.name),
+            datasets: [{
+              data: chartData.data.map((d: { value: number }) => d.value),
+              backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'],
+              borderColor: '#6366f1',
+              fill: false,
+            }],
+          },
+          options: { plugins: { legend: { display: false } } },
+        }
+        const url = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(cfg))}&w=500&h=280&bkg=%23111827`
+        output += `\n[CHART_URL:${url}]`
+      } catch {
+        const url = getChartUrl(message)
+        if (url) output += `\n[CHART_URL:${url}]`
+      }
+    } else if (/graf|vizualiz|znazorn|graficky/i.test(message)) {
       const url = getChartUrl(message)
       if (url) output += `\n[CHART_URL:${url}]`
     }
