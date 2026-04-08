@@ -1,0 +1,322 @@
+'use client'
+
+import { useState } from 'react'
+import { FileText, Download, Copy, Check, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+
+const CONTRACT_TYPES = [
+  {
+    id: 'rezervace',
+    label: 'Rezervační smlouva',
+    description: 'Pro rezervaci nemovitosti před podpisem kupní smlouvy',
+    color: 'border-blue-500',
+  },
+  {
+    id: 'kupni',
+    label: 'Kupní smlouva',
+    description: 'Převod vlastnictví nemovitosti',
+    color: 'border-green-500',
+  },
+  {
+    id: 'najemni',
+    label: 'Nájemní smlouva',
+    description: 'Pronájem bytu nebo komerčního prostoru',
+    color: 'border-amber-500',
+  },
+  {
+    id: 'spravcovska',
+    label: 'Správcovská smlouva',
+    description: 'Správa nemovitosti pro vlastníka',
+    color: 'border-purple-500',
+  },
+]
+
+const TEMPLATES: Record<string, string> = {
+  rezervace: `REZERVAČNÍ SMLOUVA
+
+uzavřená níže uvedeného dne, měsíce a roku mezi:
+
+Prodávající:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+a
+
+Kupující:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+I. Předmět rezervace
+Prodávající touto smlouvou rezervuje nemovitost:
+Adresa: ___________________________
+LV č.: ___________________________
+Katastrální území: ___________________________
+
+II. Rezervační záloha
+Kupující se zavazuje uhradit rezervační zálohu ve výši: ___________ Kč
+Splatnost: do ___________ dnů od podpisu této smlouvy
+Na účet: ___________________________
+
+III. Rezervační lhůta
+Nemovitost je rezervována do: ___________________________
+V této lhůtě se prodávající zavazuje nenabízet nemovitost třetím osobám.
+
+IV. Podmínky
+1. Rezervační záloha bude započtena na kupní cenu.
+2. Neuzavřou-li strany kupní smlouvu v rezervační lhůtě z důvodů na straně kupujícího, záloha propadá prodávajícímu.
+3. Neuzavřou-li strany kupní smlouvu z důvodů na straně prodávajícího, vrátí zálohu ve dvojnásobné výši.
+
+V. Závěrečná ustanovení
+Tato smlouva je vyhotovena ve dvou stejnopisech.
+
+V Praze dne: ___________________________
+
+Prodávající: ___________________________    Kupující: ___________________________`,
+
+  kupni: `SMLOUVA O KOUPI NEMOVITÉ VĚCI
+
+uzavřená níže uvedeného dne, měsíce a roku mezi:
+
+Prodávající:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+Zapsán/a v OR: ___________________________
+
+a
+
+Kupující:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+I. Předmět koupě
+Prodávající prodává kupujícímu a kupující kupuje od prodávajícího nemovitou věc:
+- Byt/dům/pozemek č.: ___________________________
+- Adresa: ___________________________
+- Zapsáno na LV č.: ___________ pro k.ú. ___________________________
+- Výměra: ___________ m²
+- Podíl na společných částech: ___________________________
+
+II. Kupní cena
+Smluvní strany se dohodly na kupní ceně: ___________ Kč (slovy: ___________________________)
+
+Způsob úhrady:
+□ Hotovost
+□ Bankovním převodem na účet: ___________________________
+□ Z hypotečního úvěru — banka: ___________________________
+□ Prostřednictvím advokátní/notářské úschovy
+
+III. Předání nemovitosti
+Prodávající předá nemovitost kupujícímu do: ___________________________
+Stav při předání: ___________________________
+
+IV. Prohlášení prodávajícího
+Prodávající prohlašuje, že:
+1. Je výlučným vlastníkem nemovitosti.
+2. Nemovitost není zatížena zástavním právem (s výjimkou: ___________________________)
+3. Na nemovitosti neváznou žádné jiné právní vady.
+4. Nejsou mu známy žádné skryté vady.
+
+V. Vklad do katastru nemovitostí
+Smluvní strany se zavazují podat návrh na vklad do KN do ___________ dnů od úhrady kupní ceny.
+Náklady na vklad hradí: ___________________________
+
+VI. Závěrečná ustanovení
+Tato smlouva se řídí právním řádem ČR, zejm. § 2079 a násl. OZ.
+Vyhotovena ve třech stejnopisech.
+
+V Praze dne: ___________________________
+
+Prodávající: ___________________________    Kupující: ___________________________
+
+Ověření podpisů: ___________________________`,
+
+  najemni: `NÁJEMNÍ SMLOUVA
+
+uzavřená níže uvedeného dne, měsíce a roku mezi:
+
+Pronajímatel:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+a
+
+Nájemce:
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+I. Předmět nájmu
+Pronajímatel přenechává nájemci do užívání:
+Byt/prostory č.: ___________________________
+Adresa: ___________________________
+Plocha: ___________ m²
+Vybavení: □ Zařízený  □ Částečně zařízený  □ Nezařízený
+
+II. Doba nájmu
+□ Na dobu určitou: od ___________ do ___________
+□ Na dobu neurčitou: od ___________
+Výpovědní lhůta: ___________ měsíců
+
+III. Nájemné a platby
+Měsíční nájemné: ___________ Kč
+Zálohy na služby: ___________ Kč
+Celková měsíční platba: ___________ Kč
+
+Splatnost: ___________ den v měsíci
+Způsob platby: převodem na účet: ___________________________
+
+IV. Kauce (jistota)
+Výše kauce: ___________ Kč (max. 3 měsíční nájemné)
+Splatnost: před předáním bytu
+Vrácení: do 1 měsíce od skončení nájmu
+
+V. Práva a povinnosti
+Nájemce se zavazuje:
+1. Platit nájemné řádně a včas.
+2. Užívat byt pouze pro bydlení.
+3. Provádět běžnou údržbu na vlastní náklady.
+4. Hlásit závady pronajímateli bez zbytečného odkladu.
+5. Neumožnit podnájem bez souhlasu pronajímatele.
+
+Pronajímatel se zavazuje:
+1. Předat byt ve stavu způsobilém k řádnému užívání.
+2. Zajistit nerušené užívání bytu.
+
+VI. Závěrečná ustanovení
+Smlouva se řídí § 2235 a násl. OZ.
+
+V Praze dne: ___________________________
+
+Pronajímatel: ___________________________    Nájemce: ___________________________`,
+
+  spravcovska: `SMLOUVA O SPRÁVĚ NEMOVITOSTI
+
+uzavřená níže uvedeného dne, měsíce a roku mezi:
+
+Vlastník (mandant):
+Jméno/Firma: ___________________________
+Adresa: ___________________________
+IČO/RČ: ___________________________
+
+a
+
+Správce (mandatář):
+Firma: ___________________________
+Adresa: ___________________________
+IČO: ___________________________
+Číslo oprávnění RK: ___________________________
+
+I. Předmět smlouvy
+Vlastník svěřuje správci správu nemovitosti:
+Adresa: ___________________________
+LV č.: ___________________________
+
+II. Rozsah správy
+Správce se zavazuje zajišťovat:
+□ Vyhledání nájemce
+□ Uzavření nájemní smlouvy
+□ Výběr nájemného
+□ Dohled nad stavem nemovitosti
+□ Zajištění oprav do výše ___________ Kč
+□ Vedení evidence plateb
+□ Vyúčtování služeb
+
+III. Odměna správce
+Měsíční odměna: ___________ Kč nebo ___________ % z nájemného
+Splatnost: do ___________ dne v měsíci
+
+IV. Trvání smlouvy
+□ Na dobu určitou: do ___________
+□ Na dobu neurčitou s výpovědní lhůtou ___________ měsíců
+
+V. Závěrečná ustanovení
+Smlouva se řídí § 2430 a násl. OZ.
+
+V Praze dne: ___________________________
+
+Vlastník: ___________________________    Správce: ___________________________`,
+}
+
+export default function ContractsPage() {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    if (!selected) return
+    navigator.clipboard.writeText(TEMPLATES[selected])
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    if (!selected) return
+    const blob = new Blob([TEMPLATES[selected]], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${selected}-smlouva.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <Link href="/" className="text-gray-500 hover:text-white transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-xl font-semibold">Návrhy smluv</h1>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {CONTRACT_TYPES.map(type => (
+            <button
+              key={type.id}
+              onClick={() => setSelected(type.id)}
+              className={`bg-gray-900 rounded-xl p-4 border-t-2 ${type.color} border-x border-b text-left transition-all ${
+                selected === type.id ? 'border-x-2 border-b-2 opacity-100' : 'border-gray-800 opacity-70 hover:opacity-100'
+              }`}
+            >
+              <FileText size={20} className="mb-2 text-gray-400" />
+              <p className="font-medium text-sm">{type.label}</p>
+              <p className="text-xs text-gray-500 mt-1">{type.description}</p>
+            </button>
+          ))}
+        </div>
+
+        {selected && (
+          <div className="bg-gray-900 rounded-xl border border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <h2 className="font-medium">{CONTRACT_TYPES.find(t => t.id === selected)?.label}</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                >
+                  {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                  {copied ? 'Zkopírováno' : 'Kopírovat'}
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                >
+                  <Download size={14} />
+                  Stáhnout
+                </button>
+              </div>
+            </div>
+            <pre className="p-6 text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed overflow-auto max-h-[600px]">
+              {TEMPLATES[selected]}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
