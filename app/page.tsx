@@ -23,6 +23,7 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const handledQueryMessageRef = useRef(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('pepa-chat-history')
@@ -51,6 +52,14 @@ export default function Home() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const queryMessage = params.get('message')
+    if (!queryMessage || handledQueryMessageRef.current) return
+    setInput(queryMessage)
+    handledQueryMessageRef.current = true
+  }, [])
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return

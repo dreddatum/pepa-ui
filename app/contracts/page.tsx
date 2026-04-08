@@ -291,31 +291,47 @@ export default function ContractsPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [templateText, setTemplateText] = useState('')
   const [copied, setCopied] = useState(false)
+  const [prefillContext, setPrefillContext] = useState<{
+    property?: string | null
+    propertyName?: string | null
+    district?: string | null
+    price?: string | null
+    lead?: string | null
+  } | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const requestedType = params.get('type')
-    const property = params.get('property')
-    const propertyName = params.get('propertyName')
-    const district = params.get('district')
-    const price = params.get('price')
-    const lead = params.get('lead')
+    const context = {
+      property: params.get('property'),
+      propertyName: params.get('propertyName'),
+      district: params.get('district'),
+      price: params.get('price'),
+      lead: params.get('lead'),
+    }
+    setPrefillContext(context)
 
     const validType = requestedType && CONTRACT_TYPES.some(t => t.id === requestedType)
       ? requestedType
       : null
 
     if (validType) {
-      const base = TEMPLATES[validType]
-      const prefilled = prefillTemplate(base, validType, { property, propertyName, district, price, lead })
       setSelected(validType)
-      setTemplateText(prefilled)
+      setTemplateText(prefillTemplate(TEMPLATES[validType], validType, context))
+    } else {
+      setSelected(CONTRACT_TYPES[0].id)
+      setTemplateText(prefillTemplate(TEMPLATES[CONTRACT_TYPES[0].id], CONTRACT_TYPES[0].id, context))
     }
   }, [])
 
   useEffect(() => {
-    if (selected) setTemplateText(TEMPLATES[selected])
-  }, [selected])
+    if (!selected) return
+    if (prefillContext) {
+      setTemplateText(prefillTemplate(TEMPLATES[selected], selected, prefillContext))
+    } else {
+      setTemplateText(TEMPLATES[selected])
+    }
+  }, [selected, prefillContext])
 
   const handleCopy = () => {
     if (!selected) return
