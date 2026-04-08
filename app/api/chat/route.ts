@@ -2,24 +2,52 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const WEBHOOK_URL = 'https://ikonomidis.app.n8n.cloud/webhook/pepa'
 
-const CHARTS = {
+const CHARTS: Record<string, { labels: string[]; data: number[]; data2?: number[]; type?: 'bar' | 'line' }> = {
   q1: { labels: ['Doporučení', 'Web', 'LinkedIn', 'Veletrh', 'Sreality', 'Agent'], data: [4, 3, 2, 2, 2, 3] },
-  leads: { labels: ['Říj', 'Lis', 'Pro', 'Led', 'Úno', 'Bře'], data: [3, 4, 3, 4, 5, 4] },
+  leads: { labels: ['Říj', 'Lis', 'Pro', 'Led', 'Úno', 'Bře'], data: [3, 4, 3, 4, 5, 4], type: 'line' },
+  sales: {
+    labels: ['Říj 25', 'Lis 25', 'Pro 25', 'Led 26', 'Úno 26', 'Bře 26'],
+    data: [0, 1, 0, 1, 0, 0],
+    type: 'bar',
+  },
+  leads_and_sales: {
+    labels: ['Říj 25', 'Lis 25', 'Pro 25', 'Led 26', 'Úno 26', 'Bře 26'],
+    data: [3, 4, 3, 4, 5, 4],
+    data2: [0, 1, 0, 1, 0, 0],
+    type: 'bar',
+  },
   portfolio: { labels: ['Byty', 'Komerční', 'Domy', 'Pozemky', 'Garáže'], data: [82, 75, 33, 8, 4] },
   yield: { labels: ['PRG-005', 'PRG-002', 'PRG-011', 'PRG-013', 'PRG-009'], data: [4.86, 4.81, 4.17, 4.11, 3.79] },
 }
 
 function getChartUrl(message: string): string | null {
   const m = message.toLowerCase()
-  let chart: { labels: string[]; data: number[] } | null = null
+  let chart: { labels: string[]; data: number[]; type?: 'bar' | 'line' } | null = null
   let type = 'bar'
+
+  if (m.includes('prodej') || m.includes('prodaných') || (m.includes('lead') && m.includes('prodej'))) {
+    const cfg = JSON.stringify({
+      type: 'bar',
+      data: {
+        labels: ['Říj 25', 'Lis 25', 'Pro 25', 'Led 26', 'Úno 26', 'Bře 26'],
+        datasets: [
+          { label: 'Nové leady', data: [3, 4, 3, 4, 5, 4], backgroundColor: '#6366f1' },
+          { label: 'Prodeje', data: [0, 1, 0, 1, 0, 0], backgroundColor: '#10b981' },
+        ],
+      },
+      options: { plugins: { legend: { display: true } } },
+    })
+    return `https://quickchart.io/chart?c=${encodeURIComponent(cfg)}&w=500&h=280&bkg=%23111827`
+  }
 
   if (m.includes('q1') || m.includes('kvart') || m.includes('zdroj')) chart = CHARTS.q1
   else if (m.includes('6 m') || m.includes('vývoj') || m.includes('trend') || m.includes('posledních')) { chart = CHARTS.leads; type = 'line' }
+  else if (m.includes('prodej') || m.includes('prodaných') || (m.includes('lead') && m.includes('prodej'))) chart = CHARTS.sales
   else if (m.includes('portfolio') || m.includes('typ')) chart = CHARTS.portfolio
   else if (m.includes('výnos') || m.includes('yield')) chart = CHARTS.yield
 
   if (!chart) return null
+  type = chart.type || type
 
   const cfg = JSON.stringify({
     type,
@@ -64,15 +92,34 @@ export async function POST(request: NextRequest) {
     try { data = JSON.parse(text) as Record<string, unknown> } catch { return NextResponse.json({ response: text }) }
 
     const raw = String(data.response ?? data.output ?? data.message ?? '')
+    console.log('RAW:', raw.substring(0, 300))
+    const chartStart = raw.indexOf('[CHART:')
+    const chartEnd = chartStart >= 0 ? raw.indexOf(']', chartStart) : -1
+    const chartJson = chartStart >= 0
+      ? raw.substring(chartStart + '[CHART:'.length, chartEnd > chartStart ? chartEnd : undefined)
+      : null
+    console.log('CHART START:', chartStart, 'RAW LENGTH:', raw.length)
+    console.log('chartStart:', chartStart, 'chartEnd:', chartEnd, 'chartJson:', chartJson?.substring(0, 50))
 
     // Extrahuj CHART z n8n odpovědi
-    const chartMatch = raw.match(/\[CHART:(\{[^}]+\}(?:,\{[^}]+\})*|\{[\s\S]+?\})\]/)
+    const chartMatch = raw.match(/\[CHART:(.+?)\](?:\s|$)/) ||
+      raw.match(/\[CHART:(.+)$/)
     console.log('CHART MATCH:', chartMatch?.[1]?.substring(0, 50))
     console.log('RAW CONTAINS CHART:', raw.includes('[CHART:'))
     console.log('CHART MATCH RESULT:', chartMatch ? 'FOUND' : 'NOT FOUND')
 
     // Vyčisti text
     let output = clean(raw)
+    const isSalesQuery = message.toLowerCase().includes('prodej') ||
+      message.toLowerCase().includes('prodaných') ||
+      (message.toLowerCase().includes('lead') && message.toLowerCase().includes('prodej'))
+
+    // U dotazů na prodeje dej vždy prioritu serverovému multi-dataset grafu
+    if (isSalesQuery) {
+      const url = getChartUrl(message)
+      if (url) output += `\n[CHART_URL:${url}]`
+      return NextResponse.json({ response: output })
+    }
 
     if (chartMatch) {
       try {
