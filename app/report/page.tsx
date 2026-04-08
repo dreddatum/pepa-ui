@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
+import ExportButton from '@/components/ExportButton'
 
 export default function ReportPage() {
   const [generating, setGenerating] = useState(false)
@@ -45,6 +46,27 @@ export default function ReportPage() {
             <ExternalLink size={14} />
             Otevřít v Google Slides
           </a>
+          <ExportButton
+            title="Týdenní report — Pepa Agent"
+            content={`
+    <div class="stat"><div class="stat-value">114,5M Kč</div><div class="stat-label">Hodnota portfolia</div></div>
+    <div class="stat"><div class="stat-value">11</div><div class="stat-label">Aktivních nemovitostí</div></div>
+    <div class="stat"><div class="stat-value">3,95%</div><div class="stat-label">Průměrný výnos</div></div>
+    <div class="stat"><div class="stat-value">17</div><div class="stat-label">Aktivních leadů</div></div>
+    <h2>Pipeline leadů</h2>
+    <table>
+      <tr><th>Klient</th><th>Firma</th><th>Rozpočet</th><th>Status</th></tr>
+      <tr><td>Ing. Pavel Kratochvíl</td><td>InvestCorp</td><td>15–25M Kč</td><td>Jednáme</td></tr>
+      <tr><td>Vladimír Novotný</td><td>Novotný Real</td><td>18–28M Kč</td><td>Jednáme</td></tr>
+      <tr><td>Tomáš Bureš</td><td>SB Invest</td><td>10–20M Kč</td><td>Jednáme</td></tr>
+    </table>
+    <h2>Auditní upozornění</h2>
+    <div class="alert">PRG-006 — Chybí energetická třída, stav nemovitosti</div>
+    <div class="alert">PRG-014 — Chybí aktuální ocenění, adresa</div>
+    <div class="alert">PRG-012 — Chybí pořizovací cena</div>
+  `}
+            filename="tydenny-report"
+          />
           <button
             type="button"
             onClick={generateReport}

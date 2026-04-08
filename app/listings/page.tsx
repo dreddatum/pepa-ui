@@ -1,19 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Building2, MapPin, Ruler, TrendingUp, Filter, X } from 'lucide-react'
+import { ArrowLeft, Building2, MapPin, Ruler, TrendingUp, Filter, X, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 const LISTINGS = [
-  { code: 'PRG-001', name: 'Bytový dům Holešovice', type: 'byt', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 78.5, price: 10500000, rent: 28000, yield: 3.43, floor: '3/6', energy: 'B', condition: 'dobry', tags: ['metro', 'park', 'investice'] },
-  { code: 'PRG-002', name: 'Komerční prostory Žižkov', type: 'komerci', status: 'aktivni', district: 'Praha 3 - Žižkov', area: 245, price: 17800000, rent: 65000, yield: 4.81, floor: '1/5', energy: 'C', condition: 'dobry', tags: ['komercni', 'pronajem'] },
-  { code: 'PRG-003', name: 'Rodinný dům Vinohrady', type: 'dum', status: 'due_diligence', district: 'Praha 2 - Vinohrady', area: 195, price: 26000000, rent: null, yield: null, floor: null, energy: 'A', condition: 'vyborny', tags: ['vila', 'exkluzivni'] },
-  { code: 'PRG-005', name: 'Loftový prostor Holešovice', type: 'komerci', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 320, price: 22500000, rent: 85000, yield: 4.86, floor: '2/4', energy: 'C', condition: 'dobry', tags: ['loft', 'komerci'] },
+  { code: 'PRG-001', name: 'Bytový dům Holešovice', type: 'byt', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 78.5, price: 10500000, rent: 28000, yield: 3.43, floor: '3/6', energy: 'B', condition: 'dobry', tags: ['metro', 'park', 'investice'], url: 'https://www.sreality.cz/hledani/prodej/byty/holesovice' },
+  { code: 'PRG-002', name: 'Komerční prostory Žižkov', type: 'komerci', status: 'aktivni', district: 'Praha 3 - Žižkov', area: 245, price: 17800000, rent: 65000, yield: 4.81, floor: '1/5', energy: 'C', condition: 'dobry', tags: ['komercni', 'pronajem'], url: 'https://www.sreality.cz/hledani/prodej/komercni-nemovitosti/zizkov' },
+  { code: 'PRG-003', name: 'Rodinný dům Vinohrady', type: 'dum', status: 'due_diligence', district: 'Praha 2 - Vinohrady', area: 195, price: 26000000, rent: null, yield: null, floor: null, energy: 'A', condition: 'vyborny', tags: ['vila', 'exkluzivni'], url: 'https://www.sreality.cz/hledani/prodej/domy/vinohrady' },
+  { code: 'PRG-005', name: 'Loftový prostor Holešovice', type: 'komerci', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 320, price: 22500000, rent: 85000, yield: 4.86, floor: '2/4', energy: 'C', condition: 'dobry', tags: ['loft', 'komerci'], url: 'https://www.sreality.cz/hledani/prodej/komercni-nemovitosti/holesovice' },
   { code: 'PRG-007', name: 'Garsoniera Dejvice', type: 'byt', status: 'aktivni', district: 'Praha 6 - Dejvice', area: 32.5, price: 3600000, rent: 11000, yield: 3.83, floor: '5/6', energy: 'D', condition: 'dobry', tags: ['garsonka'] },
   { code: 'PRG-009', name: 'Byt 3+1 Nusle', type: 'byt', status: 'aktivni', district: 'Praha 4 - Nusle', area: 84, price: 8100000, rent: 24000, yield: 3.79, floor: '3/5', energy: 'C', condition: 'dobry', tags: ['pronajem'] },
   { code: 'PRG-010', name: 'Penthouse Pankrác', type: 'byt', status: 'due_diligence', district: 'Praha 4 - Pankrác', area: 155, price: 24000000, rent: null, yield: null, floor: '14/14', energy: 'A', condition: 'vyborny', tags: ['penthouse', 'vip'] },
   { code: 'PRG-011', name: 'Byt 1+kk Holešovice', type: 'byt', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 41, price: 4850000, rent: 16000, yield: 4.17, floor: '1/8', energy: 'B', condition: 'vyborny', tags: ['novostavba'] },
-  { code: 'PRG-013', name: 'Kancelář Karlín', type: 'komerci', status: 'aktivni', district: 'Praha 8 - Karlín', area: 175, price: 16000000, rent: 52000, yield: 4.11, floor: '2/6', energy: 'A', condition: 'vyborny', tags: ['kancelare', 'leed'] },
+  { code: 'PRG-013', name: 'Kancelář Karlín', type: 'komerci', status: 'aktivni', district: 'Praha 8 - Karlín', area: 175, price: 16000000, rent: 52000, yield: 4.11, floor: '2/6', energy: 'A', condition: 'vyborny', tags: ['kancelare', 'leed'], url: 'https://www.sreality.cz/hledani/prodej/komercni-nemovitosti/karlin' },
   { code: 'PRG-014', name: 'Pozemek Zbraslav', type: 'pozemek', status: 'due_diligence', district: 'Praha 16 - Zbraslav', area: 1240, price: 8200000, rent: null, yield: null, floor: null, energy: null, condition: null, tags: ['pozemek', 'stavba'] },
   { code: 'PRG-015', name: 'Apartmán Vinohrady', type: 'byt', status: 'aktivni', district: 'Praha 2 - Vinohrady', area: 67, price: 10200000, rent: 30000, yield: 3.67, floor: '3/5', energy: 'C', condition: 'dobry', tags: ['historicky'] },
   { code: 'PRG-016', name: 'Garáže Holešovice x5', type: 'garaz', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 75, price: 3500000, rent: 9500, yield: 3.56, floor: null, energy: null, condition: 'dobry', tags: ['garaz', 'balicek'] },
@@ -272,6 +272,15 @@ export default function ListingsPage() {
               >
                 Zavřít
               </button>
+              <a
+                href={selectedListing.url ?? 'https://www.sreality.cz/hledani/prodej/byty'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center flex items-center justify-center gap-1"
+              >
+                <ExternalLink size={14} />
+                Sreality.cz
+              </a>
               <button
                 type="button"
                 onClick={() => {
@@ -280,7 +289,7 @@ export default function ListingsPage() {
                 }}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors"
               >
-                Napsat email klientovi
+                Email klientovi
               </button>
             </div>
           </div>
