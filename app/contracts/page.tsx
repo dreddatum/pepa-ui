@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { FileText, Download, Copy, Check, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -287,51 +288,104 @@ const prefillTemplate = (
   return result
 }
 
-export default function ContractsPage() {
+type CustomData = {
+  propertyName: string
+  propertyCode: string
+  price: string
+  priceNumber: string
+  address: string
+  sellerName: string
+  buyerName: string
+  date: string
+}
+
+function buildPrefillFromCustomData(data: CustomData, lead: string | null) {
+  return {
+    property: data.propertyCode || null,
+    propertyName: data.propertyName || null,
+    district: data.address || null,
+    price: data.priceNumber || null,
+    lead,
+  }
+}
+
+function getTemplate(type: string, customData: CustomData, lead: string | null) {
+  const t = TEMPLATES[type] || ''
+  const fromParams = buildPrefillFromCustomData(customData, lead)
+  let result = prefillTemplate(t, type, fromParams)
+  result = result
+    .replace(/Adresa: ___/g, `Adresa: ${customData.address || '___'}`)
+    .replace(/___________________________\n.*?LV/g, `${customData.propertyName || '___'}\nLV`)
+    .replace('___________ Kč (slovy', `${customData.price || '___'} Kč (slovy`)
+  return result
+}
+
+function ContractsContent() {
+  const searchParams = useSearchParams()
+  const code = searchParams.get('code') || ''
+  const name = searchParams.get('name') || ''
+  const priceParam = searchParams.get('price') || ''
+  const address = searchParams.get('address') || ''
+
   const [selected, setSelected] = useState<string | null>(null)
   const [templateText, setTemplateText] = useState('')
   const [copied, setCopied] = useState(false)
-  const [prefillContext, setPrefillContext] = useState<{
-    property?: string | null
-    propertyName?: string | null
-    district?: string | null
-    price?: string | null
-    lead?: string | null
-  } | null>(null)
+  const [customData, setCustomData] = useState<CustomData>({
+    propertyName: name,
+    propertyCode: code,
+    price: priceParam ? new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(Number(priceParam)) : '',
+    priceNumber: priceParam,
+    address: address,
+    sellerName: '',
+    buyerName: '',
+    date: new Date().toLocaleDateString('cs-CZ'),
+  })
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const requestedType = params.get('type')
-    const context = {
-      property: params.get('property'),
-      propertyName: params.get('propertyName'),
-      district: params.get('district'),
-      price: params.get('price'),
-      lead: params.get('lead'),
-    }
-    setPrefillContext(context)
+    const legacyProperty = searchParams.get('property') || ''
+    const legacyName = searchParams.get('propertyName') || ''
+    const legacyDistrict = searchParams.get('district') || ''
+    const legacyPrice = searchParams.get('price') || ''
+    const urlCode = searchParams.get('code') || ''
+    const urlName = searchParams.get('name') || ''
+    const urlAddress = searchParams.get('address') || ''
 
-    const validType = requestedType && CONTRACT_TYPES.some(t => t.id === requestedType)
-      ? requestedType
-      : null
+    const resolvedCode = urlCode || legacyProperty
+    const resolvedName = urlName || legacyName
+    const resolvedAddress = urlAddress || legacyDistrict
+    const resolvedPrice = urlCode || urlName || urlAddress ? (searchParams.get('price') || '') : legacyPrice
 
-    if (validType) {
-      setSelected(validType)
-      setTemplateText(prefillTemplate(TEMPLATES[validType], validType, context))
-    } else {
-      setSelected(CONTRACT_TYPES[0].id)
-      setTemplateText(prefillTemplate(TEMPLATES[CONTRACT_TYPES[0].id], CONTRACT_TYPES[0].id, context))
+    setCustomData({
+      propertyName: resolvedName,
+      propertyCode: resolvedCode,
+      price: resolvedPrice
+        ? new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(Number(resolvedPrice))
+        : '',
+      priceNumber: resolvedPrice,
+      address: resolvedAddress,
+      sellerName: '',
+      buyerName: '',
+      date: new Date().toLocaleDateString('cs-CZ'),
+    })
+  }, [searchParams])
+
+  useEffect(() => {
+    if (code) {
+      setSelected('rezervace')
+      return
     }
-  }, [])
+    const requestedType = searchParams.get('type')
+    const validType =
+      requestedType && CONTRACT_TYPES.some(t => t.id === requestedType) ? requestedType : null
+    if (validType) setSelected(validType)
+    else setSelected(CONTRACT_TYPES[0].id)
+  }, [searchParams, code])
 
   useEffect(() => {
     if (!selected) return
-    if (prefillContext) {
-      setTemplateText(prefillTemplate(TEMPLATES[selected], selected, prefillContext))
-    } else {
-      setTemplateText(TEMPLATES[selected])
-    }
-  }, [selected, prefillContext])
+    const lead = searchParams.get('lead')
+    setTemplateText(getTemplate(selected, customData, lead))
+  }, [selected, customData, searchParams])
 
   const handleCopy = () => {
     if (!selected) return
@@ -410,5 +464,19 @@ export default function ContractsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ContractsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-950 text-white p-6 flex items-center justify-center text-gray-400 text-sm">
+          Načítání…
+        </div>
+      }
+    >
+      <ContractsContent />
+    </Suspense>
   )
 }

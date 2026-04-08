@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, Building2, MapPin, Ruler, TrendingUp, Filter, X, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
@@ -39,6 +40,7 @@ const formatPrice = (price: number) =>
   new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(price)
 
 export default function ListingsPage() {
+  const router = useRouter()
   const [typeFilter, setTypeFilter] = useState('vse')
   const [districtFilter, setDistrictFilter] = useState('vse')
   const [maxPrice, setMaxPrice] = useState(30000000)
@@ -293,16 +295,25 @@ export default function ListingsPage() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-3">
-              <Link
-                href={`/contracts?type=kupni&property=${encodeURIComponent(selectedListing.code)}&propertyName=${encodeURIComponent(selectedListing.name)}&district=${encodeURIComponent(selectedListing.district)}&price=${selectedListing.price}`}
-                className="bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center"
-                onClick={() => setSelectedListing(null)}
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    code: selectedListing.code,
+                    name: selectedListing.name,
+                    price: selectedListing.price.toString(),
+                    address: selectedListing.district,
+                  })
+                  router.push(`/contracts?${params.toString()}`)
+                  setSelectedListing(null)
+                }}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors"
               >
                 Připravit smlouvu
-              </Link>
+              </button>
               <Link
                 href={`/contracts?type=rezervace&property=${encodeURIComponent(selectedListing.code)}&propertyName=${encodeURIComponent(selectedListing.name)}&district=${encodeURIComponent(selectedListing.district)}&price=${selectedListing.price}`}
-                className="bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors text-center"
+                className="bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center"
                 onClick={() => setSelectedListing(null)}
               >
                 Rezervační smlouva
