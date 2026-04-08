@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
     try { data = JSON.parse(text) as Record<string, unknown> } catch { return NextResponse.json({ response: text }) }
 
     const raw = String(data.response ?? data.output ?? data.message ?? '')
+    console.log('RAW PREVIEW:', raw.substring(0, 500))
     console.log('RAW:', raw.substring(0, 300))
     const chartStart = raw.indexOf('[CHART:')
     const chartEnd = chartStart >= 0 ? raw.indexOf(']', chartStart) : -1

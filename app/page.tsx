@@ -26,20 +26,25 @@ export default function Home() {
   const handledQueryMessageRef = useRef(false)
 
   useEffect(() => {
+    const defaultWelcome: Message[] = [{
+      id: '0',
+      role: 'assistant',
+      content: 'Dobrý den. Jsem <strong>Pepa</strong>, váš operační agent. Jak vám mohu pomoci?',
+      timestamp: new Date(),
+    }]
     const saved = localStorage.getItem('pepa-chat-history')
     if (saved) {
-      const parsed = JSON.parse(saved).map((m: Message) => ({
-        ...m,
-        timestamp: new Date(m.timestamp),
-      }))
-      setMessages(parsed)
+      try {
+        const parsed = JSON.parse(saved).map((m: Message) => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }))
+        setMessages(parsed)
+      } catch {
+        setMessages(defaultWelcome)
+      }
     } else {
-      setMessages([{
-        id: '0',
-        role: 'assistant',
-        content: 'Dobrý den. Jsem <strong>Pepa</strong>, váš operační agent pro správu nemovitostního portfolia. Jak vám mohu pomoci?',
-        timestamp: new Date(),
-      }])
+      setMessages(defaultWelcome)
     }
   }, [])
 
