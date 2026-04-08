@@ -60,7 +60,7 @@ export default function ListingsPage() {
     })
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
+    <div className="flex-1 overflow-y-auto bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <Link href="/" className="text-gray-500 hover:text-white transition-colors">
