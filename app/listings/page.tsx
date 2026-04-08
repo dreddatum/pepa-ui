@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Building2, MapPin, Ruler, TrendingUp, Filter } from 'lucide-react'
+import { ArrowLeft, Building2, MapPin, Ruler, TrendingUp, Filter, X } from 'lucide-react'
 import Link from 'next/link'
 
 const LISTINGS = [
@@ -43,6 +43,7 @@ export default function ListingsPage() {
   const [districtFilter, setDistrictFilter] = useState('vse')
   const [maxPrice, setMaxPrice] = useState(30000000)
   const [sortBy, setSortBy] = useState('code')
+  const [selectedListing, setSelectedListing] = useState<(typeof LISTINGS)[0] | null>(null)
 
   const districts = ['vse', ...Array.from(new Set(LISTINGS.map(l => l.district)))]
 
@@ -137,7 +138,11 @@ export default function ListingsPage() {
         {/* Grid */}
         <div className="grid grid-cols-3 gap-4">
           {filtered.map(listing => (
-            <div key={listing.code} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-600 transition-colors">
+            <div
+              key={listing.code}
+              onClick={() => setSelectedListing(listing)}
+              className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-600 transition-colors cursor-pointer"
+            >
               <div className="bg-gray-800 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building2 size={14} className="text-indigo-400" />
@@ -212,6 +217,75 @@ export default function ListingsPage() {
           </div>
         )}
       </div>
+
+      {selectedListing && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-lg">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="text-xs font-mono text-indigo-400 mb-1">{selectedListing.code}</p>
+                <h2 className="font-semibold">{selectedListing.name}</h2>
+              </div>
+              <button type="button" onClick={() => setSelectedListing(null)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {([
+                { label: 'Typ', value: TYPE_LABELS[selectedListing.type] },
+                { label: 'Status', value: STATUS_LABELS[selectedListing.status]?.label ?? '—' },
+                { label: 'Lokalita', value: selectedListing.district },
+                { label: 'Plocha', value: `${selectedListing.area} m²` },
+                { label: 'Patro', value: selectedListing.floor || '—' },
+                { label: 'Energie', value: selectedListing.energy || '—' },
+                { label: 'Stav', value: selectedListing.condition ? CONDITION_LABELS[selectedListing.condition] : '—' },
+                { label: 'Cena', value: formatPrice(selectedListing.price) },
+              ]).map(row => (
+                <div key={row.label} className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">{row.label}</p>
+                  <p className="text-sm font-medium">{row.value}</p>
+                </div>
+              ))}
+            </div>
+            {selectedListing.rent && (
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Měsíční nájem</p>
+                  <p className="text-sm font-medium text-green-400">{formatPrice(selectedListing.rent)}</p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Výnos p.a.</p>
+                  <p className="text-sm font-medium text-amber-400">{selectedListing.yield}%</p>
+                </div>
+              </div>
+            )}
+            <div className="flex flex-wrap gap-1 mb-4">
+              {selectedListing.tags.map(tag => (
+                <span key={tag} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">#{tag}</span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedListing(null)}
+                className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors"
+              >
+                Zavřít
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedListing(null)
+                  window.location.href = '/?message=Napiš email pro zájemce o nemovitost ' + selectedListing.code
+                }}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors"
+              >
+                Napsat email klientovi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

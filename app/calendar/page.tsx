@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, User, Plus, X, Check } from 'lucide-react'
 import Link from 'next/link'
 
@@ -41,6 +41,46 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
   const [newMeeting, setNewMeeting] = useState({ title: '', client: '', property: '', date: '', time: '10:00', duration: '60 min', location: '', note: '' })
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('pepa-meetings')
+    if (saved) {
+      try {
+        setMeetings(JSON.parse(saved))
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
+  const skipFirstPersist = useRef(true)
+  useEffect(() => {
+    if (skipFirstPersist.current) {
+      skipFirstPersist.current = false
+      return
+    }
+    localStorage.setItem('pepa-meetings', JSON.stringify(meetings))
+  }, [meetings])
+
+  const confirmMeeting = async (meeting: Meeting) => {
+    setMeetings(prev => prev.map(m =>
+      m.id === meeting.id ? { ...m, status: 'confirmed' as const } : m
+    ))
+    setSelectedMeeting(null)
+
+    await fetch('/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: meeting.title,
+        client: meeting.client,
+        date: meeting.date,
+        time: meeting.time,
+        location: meeting.location,
+        note: meeting.note,
+      }),
+    })
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -219,81 +259,97 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {selectedMeeting && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold">{selectedMeeting.title}</h2>
-                <button type="button" onClick={() => setSelectedMeeting(null)} className="text-gray-400 hover:text-white">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
+        {selectedMeeting && (() => {
+          const currentMeeting = meetings.find(m => m.id === selectedMeeting.id) || selectedMeeting
+          return (
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+              <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-semibold">{currentMeeting.title}</h2>
+                  <button type="button" onClick={() => setSelectedMeeting(null)} className="text-gray-400 hover:text-white">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-400">Status</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${STATUS_CONFIG[selectedMeeting.status].color}`}>
-                    {STATUS_CONFIG[selectedMeeting.status].label}
+                  <span className={`text-xs px-2 py-1 rounded-full ${STATUS_CONFIG[currentMeeting.status].color}`}>
+                    {STATUS_CONFIG[currentMeeting.status].label}
                   </span>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-4 space-y-2">
+                <div className="bg-gray-800 rounded-lg p-4 space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm">
                     <User size={14} className="text-gray-400" />
                     <span className="text-gray-400">Klient:</span>
-                    <span className="font-medium">{selectedMeeting.client}</span>
+                    <span className="font-medium">{currentMeeting.client}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Building2 size={14} className="text-gray-400" />
                     <span className="text-gray-400">Nemovitost:</span>
-                    <span className="font-medium">{selectedMeeting.property}</span>
+                    <span className="font-medium">{currentMeeting.property}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar size={14} className="text-gray-400" />
                     <span className="text-gray-400">Datum:</span>
-                    <span className="font-medium">{new Date(selectedMeeting.date).toLocaleDateString('cs-CZ')} v {selectedMeeting.time}</span>
+                    <span className="font-medium">{new Date(currentMeeting.date).toLocaleDateString('cs-CZ')} v {currentMeeting.time}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock size={14} className="text-gray-400" />
                     <span className="text-gray-400">Délka:</span>
-                    <span className="font-medium">{selectedMeeting.duration}</span>
+                    <span className="font-medium">{currentMeeting.duration}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin size={14} className="text-gray-400" />
                     <span className="text-gray-400">Adresa:</span>
-                    <span className="font-medium">{selectedMeeting.location}</span>
+                    <span className="font-medium">{currentMeeting.location}</span>
                   </div>
                 </div>
-                {selectedMeeting.note && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                {currentMeeting.note && (
+                  <div className="bg-gray-800 rounded-lg p-3 mb-4">
                     <p className="text-xs text-gray-500 mb-1">Poznámka</p>
-                    <p className="text-sm text-gray-300">{selectedMeeting.note}</p>
+                    <p className="text-sm text-gray-300">{currentMeeting.note}</p>
                   </div>
                 )}
-                <div className="flex gap-2 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMeeting(null)}
-                    className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors"
-                  >
-                    Zavřít
-                  </button>
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setMeetings(prev => prev.map(m =>
-                        m.id === selectedMeeting.id ? { ...m, status: 'confirmed' as const } : m
-                      ))
+                      setMeetings(prev => prev.filter(m => m.id !== currentMeeting.id))
                       setSelectedMeeting(null)
                     }}
-                    className="flex-1 bg-green-700 hover:bg-green-600 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 bg-red-900 hover:bg-red-800 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
                   >
-                    <Check size={14} />
-                    Potvrdit schůzku
+                    <X size={14} />
+                    Smazat
                   </button>
+                  {currentMeeting.status !== 'confirmed' ? (
+                    <button
+                      type="button"
+                      onClick={() => confirmMeeting(currentMeeting)}
+                      className="flex-1 bg-green-700 hover:bg-green-600 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Check size={14} />
+                      Potvrdit
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMeetings(prev => prev.map(m =>
+                          m.id === currentMeeting.id ? { ...m, status: 'cancelled' as const } : m
+                        ))
+                        setSelectedMeeting(null)
+                      }}
+                      className="flex-1 bg-amber-700 hover:bg-amber-600 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                    >
+                      <X size={14} />
+                      Zrušit schůzku
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </div>
     </div>
   )
