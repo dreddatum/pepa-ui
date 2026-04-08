@@ -6,7 +6,7 @@ import Link from 'next/link'
 // Nav items — chat, dashboard, calls, leads zůstanou jako setView
 // Contracts jde jako Link
 
-import { Send, Bot, User, Loader2, Building2, LayoutDashboard, Users, Phone, MessageSquare, TrendingUp, AlertCircle, FileText } from 'lucide-react'
+import { Send, Bot, User, Loader2, Building2, LayoutDashboard, Users, Phone, MessageSquare, TrendingUp, AlertCircle, FileText, BarChart2 } from 'lucide-react'
 
 interface Message {
   id: string
@@ -146,6 +146,20 @@ export default function Home() {
           >
             <FileText size={16} />
             Návrhy smluv
+          </Link>
+          <Link
+            href="/listings"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          >
+            <Building2 size={16} />
+            Aktivní inzeráty
+          </Link>
+          <Link
+            href="/analytics"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          >
+            <BarChart2 size={16} />
+            Analytika+
           </Link>
         </nav>
         <div className="p-3 border-t border-gray-800">
