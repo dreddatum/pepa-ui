@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2 } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts'
 
 interface Message {
   id: string
@@ -84,19 +83,14 @@ export default function Home() {
     }
   }
 
-  const parseChart = (content: string) => {
-    const match = content.match(/\[CHART:([\s\S]*?)\]/)
-    if (!match) return null
-    try {
-      return JSON.parse(match[1])
-    } catch {
-      return null
-    }
+  const parseChartUrl = (content: string) => {
+    const match = content.match(/\[CHART_URL:(.*?)\]/)
+    return match ? match[1] : null
   }
 
-  const stripChart = (content: string) => content.replace(/\[CHART:[\s\S]*?\]/, '').trim()
-
-  const CHART_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#06b6d4']
+  const stripChartUrl = (content: string) => {
+    return content.replace(/\[CHART_URL:.*?\]/g, '').trim()
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-gray-950 text-white">
@@ -129,64 +123,18 @@ export default function Home() {
             </div>
             <div className={`max-w-[75%] flex flex-col gap-1 ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'assistant' ? 'bg-gray-800 text-gray-100 rounded-tl-sm' : 'bg-indigo-600 text-white rounded-tr-sm'}`}>
-                <div dangerouslySetInnerHTML={{ __html: stripChart(message.content) }} />
+                <div dangerouslySetInnerHTML={{ __html: stripChartUrl(message.content) }} />
                 {message.role === 'assistant' && (() => {
-                  const chart = parseChart(message.content)
-                  if (!chart) return null
+                  const chartUrl = parseChartUrl(message.content)
+                  if (!chartUrl) return null
                   return (
-                    <div className="mt-4 bg-gray-900 rounded-xl p-4">
-                      <p className="text-xs text-gray-400 mb-3">{chart.title}</p>
-                      {chart.type === 'bar' && (
-                        <ResponsiveContainer width="100%" height={200}>
-                          <BarChart data={chart.data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                            <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                            <Tooltip
-                              contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
-                            />
-                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                              {chart.data.map((_: unknown, i: number) => (
-                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                      {chart.type === 'line' && (
-                        <ResponsiveContainer width="100%" height={200}>
-                          <LineChart data={chart.data} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                            <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                            <Tooltip
-                              contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
-                            />
-                            <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={{ r: 4, fill: '#6366f1' }} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      )}
-                      {chart.type === 'pie' && (
-                        <ResponsiveContainer width="100%" height={200}>
-                          <PieChart>
-                            <Pie
-                              data={chart.data}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={80}
-                              label={({ name, percent }: { name?: string; percent?: number }) =>
-                                `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                              labelLine={false}
-                            >
-                              {chart.data.map((_: unknown, i: number) => (
-                                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      )}
+                    <div className="mt-3">
+                      <img
+                        src={chartUrl}
+                        alt="Graf"
+                        className="rounded-xl w-full max-w-md"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
                     </div>
                   )
                 })()}
