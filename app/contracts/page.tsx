@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileText, Download, Copy, Check, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -244,18 +244,43 @@ Vlastník: ___________________________    Správce: ___________________________`
 
 export default function ContractsPage() {
   const [selected, setSelected] = useState<string | null>(null)
+  const [templateText, setTemplateText] = useState('')
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const requestedType = params.get('type')
+    const property = params.get('property')
+    const lead = params.get('lead')
+
+    const validType = requestedType && CONTRACT_TYPES.some(t => t.id === requestedType)
+      ? requestedType
+      : null
+
+    if (validType) {
+      const base = TEMPLATES[validType]
+      let prefilled = base
+      if (lead) prefilled += `\n\nKlient: ${lead}`
+      if (property) prefilled += `\nNemovitost: ${property}`
+      setSelected(validType)
+      setTemplateText(prefilled)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selected) setTemplateText(TEMPLATES[selected])
+  }, [selected])
 
   const handleCopy = () => {
     if (!selected) return
-    navigator.clipboard.writeText(TEMPLATES[selected])
+    navigator.clipboard.writeText(templateText)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleDownload = () => {
     if (!selected) return
-    const blob = new Blob([TEMPLATES[selected]], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([templateText], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -278,6 +303,7 @@ export default function ContractsPage() {
           {CONTRACT_TYPES.map(type => (
             <button
               key={type.id}
+              type="button"
               onClick={() => setSelected(type.id)}
               className={`bg-gray-900 rounded-xl p-4 border-t-2 ${type.color} border-x border-b text-left transition-all ${
                 selected === type.id ? 'border-x-2 border-b-2 opacity-100' : 'border-gray-800 opacity-70 hover:opacity-100'
@@ -296,6 +322,7 @@ export default function ContractsPage() {
               <h2 className="font-medium">{CONTRACT_TYPES.find(t => t.id === selected)?.label}</h2>
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={handleCopy}
                   className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-sm transition-colors"
                 >
@@ -303,6 +330,7 @@ export default function ContractsPage() {
                   {copied ? 'Zkopírováno' : 'Kopírovat'}
                 </button>
                 <button
+                  type="button"
                   onClick={handleDownload}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-sm transition-colors"
                 >
@@ -311,9 +339,11 @@ export default function ContractsPage() {
                 </button>
               </div>
             </div>
-            <pre className="p-6 text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed overflow-auto max-h-[600px]">
-              {TEMPLATES[selected]}
-            </pre>
+            <textarea
+              value={templateText}
+              onChange={(e) => setTemplateText(e.target.value)}
+              className="w-full p-6 text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed overflow-auto max-h-[600px] min-h-[600px] bg-transparent outline-none resize-y"
+            />
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { X } from 'lucide-react'
 
 interface Lead {
@@ -101,6 +102,22 @@ export default function LeadsPage() {
             <button type="button" onClick={() => setSelectedLead(null)} className="w-full bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors">
               Zavřít
             </button>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <Link
+                href={`/contracts?type=kupni&lead=${encodeURIComponent(selectedLead.name)}`}
+                className="bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center"
+                onClick={() => setSelectedLead(null)}
+              >
+                Připravit smlouvu
+              </Link>
+              <Link
+                href={`/contracts?type=rezervace&lead=${encodeURIComponent(selectedLead.name)}`}
+                className="bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors text-center"
+                onClick={() => setSelectedLead(null)}
+              >
+                Rezervační smlouva
+              </Link>
+            </div>
           </div>
         </div>
       )}
