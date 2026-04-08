@@ -74,7 +74,7 @@ export default function Home() {
     setInput('')
     setLoading(true)
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },

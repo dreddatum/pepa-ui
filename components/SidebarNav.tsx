@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, LayoutDashboard, MessageSquare, Phone, Users, FileText, BarChart2, Calendar, MonitorPlay, Search, Mic } from 'lucide-react'
+import { Building2, LayoutDashboard, MessageSquare, Phone, Users, FileText, BarChart2, Calendar, MonitorPlay, Search, Mic, Plus } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/', icon: MessageSquare, label: 'Chat s Pepou', exact: true },
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/notes', icon: Mic, label: 'Poznámky' },
   { href: '/calls', icon: Phone, label: 'Evidence hovorů' },
   { href: '/leads', icon: Users, label: 'Pipeline leadů' },
+  { href: '/admin', icon: Plus, label: 'Přidat data' },
   { href: '/contracts', icon: FileText, label: 'Návrhy smluv' },
 ]
 

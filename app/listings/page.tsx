@@ -303,6 +303,7 @@ export default function ListingsPage() {
                     name: selectedListing.name,
                     price: selectedListing.price.toString(),
                     address: selectedListing.district,
+                    type: 'kupni',
                   })
                   router.push(`/contracts?${params.toString()}`)
                   setSelectedListing(null)
@@ -311,13 +312,23 @@ export default function ListingsPage() {
               >
                 Připravit smlouvu
               </button>
-              <Link
-                href={`/contracts?type=rezervace&property=${encodeURIComponent(selectedListing.code)}&propertyName=${encodeURIComponent(selectedListing.name)}&district=${encodeURIComponent(selectedListing.district)}&price=${selectedListing.price}`}
-                className="bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center"
-                onClick={() => setSelectedListing(null)}
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    code: selectedListing.code,
+                    name: selectedListing.name,
+                    price: selectedListing.price.toString(),
+                    address: selectedListing.district,
+                    type: 'rezervace',
+                  })
+                  router.push(`/contracts?${params.toString()}`)
+                  setSelectedListing(null)
+                }}
+                className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors"
               >
                 Rezervační smlouva
-              </Link>
+              </button>
             </div>
           </div>
         </div>

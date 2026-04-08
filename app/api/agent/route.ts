@@ -6,11 +6,8 @@ export async function POST(req: NextRequest) {
     const { message } = await req.json()
     const res = await fetch(W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }), signal: AbortSignal.timeout(120000) })
     const text = await res.text()
-    let d: Record<string, unknown>
-    try { d = JSON.parse(text) } catch { return NextResponse.json({ response: text }) }
-    const o = String(d.response ?? d.output ?? d.message ?? '')
-    return NextResponse.json({ response: o })
+    return NextResponse.json({ response: text })
   } catch (err) {
-    return NextResponse.json({ response: 'Agent momentalne nedostupny: ' + String(err) })
+    return NextResponse.json({ response: 'Chyba: ' + String(err) })
   }
 }

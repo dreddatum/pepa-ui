@@ -322,17 +322,17 @@ function getTemplate(type: string, customData: CustomData, lead: string | null) 
 
 function ContractsContent() {
   const searchParams = useSearchParams()
-  const code = searchParams.get('code') || ''
+  const type = searchParams.get('type') || ''
   const name = searchParams.get('name') || ''
   const priceParam = searchParams.get('price') || ''
   const address = searchParams.get('address') || ''
 
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string>(CONTRACT_TYPES[0].id)
   const [templateText, setTemplateText] = useState('')
   const [copied, setCopied] = useState(false)
   const [customData, setCustomData] = useState<CustomData>({
     propertyName: name,
-    propertyCode: code,
+    propertyCode: searchParams.get('code') || '',
     price: priceParam ? new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(Number(priceParam)) : '',
     priceNumber: priceParam,
     address: address,
@@ -370,16 +370,10 @@ function ContractsContent() {
   }, [searchParams])
 
   useEffect(() => {
-    if (code) {
-      setSelected('rezervace')
-      return
+    if (type && TEMPLATES[type]) {
+      setSelected(type)
     }
-    const requestedType = searchParams.get('type')
-    const validType =
-      requestedType && CONTRACT_TYPES.some(t => t.id === requestedType) ? requestedType : null
-    if (validType) setSelected(validType)
-    else setSelected(CONTRACT_TYPES[0].id)
-  }, [searchParams, code])
+  }, [type])
 
   useEffect(() => {
     if (!selected) return

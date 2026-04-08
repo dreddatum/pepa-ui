@@ -161,6 +161,7 @@ export default function NotesPage() {
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `Shrň tuto poznámku ze schůzky do 1 věty s klíčovými body: "${transcript}"`,

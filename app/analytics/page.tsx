@@ -63,6 +63,22 @@ const YIELD_DATA = [
   { name: 'PRG-001', yield: 3.43 },
 ]
 
+const SALES_DATA = [
+  { mesic: 'Říj 25', prodeje: 0, objem: 0 },
+  { mesic: 'Lis 25', prodeje: 1, objem: 5900000 },
+  { mesic: 'Pro 25', prodeje: 0, objem: 0 },
+  { mesic: 'Led 26', prodeje: 1, objem: 7100000 },
+  { mesic: 'Úno 26', prodeje: 0, objem: 0 },
+  { mesic: 'Bře 26', prodeje: 0, objem: 0 },
+]
+
+const SALES_SUMMARY = [
+  { label: 'Uzavřené prodeje', value: '2', color: 'text-green-400' },
+  { label: 'Celkový objem', value: '13,0M Kč', color: 'text-indigo-400' },
+  { label: 'Průměrná cena', value: '6,5M Kč', color: 'text-amber-400' },
+  { label: 'Provize celkem', value: '390 000 Kč', color: 'text-blue-400' },
+]
+
 const formatCZK = (value: number) => `${(value / 1000000).toFixed(1)}M Kč`
 
 const CustomTooltip = ({ active, payload, label }: {
@@ -218,6 +234,73 @@ export default function AnalyticsPage() {
                 <Bar dataKey="value" name="Hodnota" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* Prodeje */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+            <h2 className="text-sm font-medium mb-4 text-gray-300">Prodeje a objem transakcí</h2>
+            <div className="grid grid-cols-4 gap-3 mb-5">
+              {SALES_SUMMARY.map(s => (
+                <div key={s.label} className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">{s.label}</p>
+                  <p className={`text-xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={SALES_DATA} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
+                <XAxis dataKey="mesic" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                <YAxis tickFormatter={v => v === 0 ? '0' : `${(v / 1000000).toFixed(1)}M`} tick={{ fontSize: 11, fill: '#6b7280' }} />
+                <Tooltip
+                  contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
+                  formatter={(v) => {
+                    const n = typeof v === 'number' ? v : Number(v)
+                    return [`${(n / 1000000).toFixed(1)}M Kč`, 'Objem']
+                  }}
+                />
+                <Bar dataKey="objem" name="Objem prodejů" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Detailní transakce */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+            <h2 className="text-sm font-medium mb-4 text-gray-300">Uzavřené transakce</h2>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-500 border-b border-gray-800">
+                  <th className="text-left pb-2">Nemovitost</th>
+                  <th className="text-left pb-2">Klient</th>
+                  <th className="text-left pb-2">Typ</th>
+                  <th className="text-right pb-2">Cena</th>
+                  <th className="text-right pb-2">Provize</th>
+                  <th className="text-left pb-2">Datum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { property: 'Byt 2+kk Žižkov', client: 'Jan Mrkvička', type: 'Prodej', price: 5900000, commission: 177000, date: 'Lis 25' },
+                  { property: 'Kancelář Holešovice', client: 'Jakub Veselý', type: 'Prodej', price: 7100000, commission: 213000, date: 'Led 26' },
+                ].map((t, i) => (
+                  <tr key={i} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+                    <td className="py-2 font-medium">{t.property}</td>
+                    <td className="py-2 text-gray-400">{t.client}</td>
+                    <td className="py-2"><span className="bg-green-900 text-green-300 text-xs px-2 py-0.5 rounded-full">{t.type}</span></td>
+                    <td className="py-2 text-right text-green-400 font-medium">{new Intl.NumberFormat('cs-CZ').format(t.price)} Kč</td>
+                    <td className="py-2 text-right text-blue-400">{new Intl.NumberFormat('cs-CZ').format(t.commission)} Kč</td>
+                    <td className="py-2 text-gray-500">{t.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="text-sm font-medium">
+                  <td colSpan={3} className="pt-3 text-gray-400">Celkem</td>
+                  <td className="pt-3 text-right text-green-400">13 000 000 Kč</td>
+                  <td className="pt-3 text-right text-blue-400">390 000 Kč</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
         </div>
