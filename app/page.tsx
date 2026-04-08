@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Send, Bot, User, Loader2 } from 'lucide-react'
 
 interface Message {
@@ -75,6 +76,7 @@ export default function Home() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       })
@@ -103,7 +105,34 @@ export default function Home() {
   }
 
   const stripChartUrl = (content: string) => {
-    return content.replace(/\[CHART_URL:.*?\]/g, '').trim()
+    return content.replace(/\[CHART_URL:.*?\]/, '').trim()
+  }
+
+  const parseChart = (content: string) => {
+    const s = content.indexOf('[CHART:')
+    if (s === -1) return null
+    let bd = 0
+    let e = -1
+    for (let i = s + 7; i < content.length; i++) {
+      if (content[i] === '{') bd++
+      else if (content[i] === '}') {
+        bd--
+        if (bd === 0) {
+          e = i + 1
+          break
+        }
+      }
+    }
+    if (e === -1) return null
+    try {
+      return JSON.parse(content.substring(s + 7, e)) as {
+        title?: string
+        type?: string
+        data: { name: string; value: number }[]
+      }
+    } catch {
+      return null
+    }
   }
 
   return (
@@ -138,6 +167,25 @@ export default function Home() {
             <div className={`max-w-[75%] flex flex-col gap-1 ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'assistant' ? 'bg-gray-800 text-gray-100 rounded-tl-sm' : 'bg-indigo-600 text-white rounded-tr-sm'}`}>
                 <div dangerouslySetInnerHTML={{ __html: stripChartUrl(message.content) }} />
+                {message.role === 'assistant' && (() => {
+                  const chart = parseChart(message.content)
+                  if (!chart?.data?.length) return null
+                  return (
+                    <div className="mt-3 bg-gray-900 rounded-xl p-4">
+                      {chart.title ? (
+                        <p className="text-xs text-gray-400 mb-2">{chart.title}</p>
+                      ) : null}
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={chart.data}>
+                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                          <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                          <Tooltip contentStyle={{ background: '#1f2937', border: 'none', fontSize: 12 }} />
+                          <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )
+                })()}
                 {message.role === 'assistant' && (() => {
                   const chartUrl = parseChartUrl(message.content)
                   if (!chartUrl) return null
