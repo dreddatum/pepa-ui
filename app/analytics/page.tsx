@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Download } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 
 const LEADS_BY_SOURCE = [
@@ -104,20 +103,69 @@ const CustomTooltip = ({ active, payload, label }: {
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<'q1' | 'q2' | 'all'>('all')
   const [chartType, setChartType] = useState<'source' | 'status' | 'budget'>('source')
+  const [exportItems, setExportItems] = useState({
+    leady_zdroje: true,
+    rozlozeni: true,
+    vyvoj: true,
+    vynosy: true,
+    portfolio: true,
+    transakce: true,
+  })
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   const leadsBarData = chartType === 'source' ? LEADS_BY_SOURCE : chartType === 'status' ? LEADS_BY_STATUS : LEADS_BY_BUDGET
 
   return (
-    <div className="h-screen overflow-y-auto bg-gray-950 text-white p-6">
+    <div className="h-screen overflow-y-auto bg-gray-950 text-white p-6" id="analytics-content">
       <div className="max-w-7xl mx-auto flex-1 overflow-y-auto p-6">
-        <div className="flex items-center gap-3 mb-8">
-          <Link href="/" className="text-gray-500 hover:text-white transition-colors">
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-xl font-semibold">Analytika & grafy</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-lg font-semibold">Analytika & grafy</h2>
+          <div className="relative no-print">
+            <button
+              type="button"
+              onClick={() => setShowExportMenu(p => !p)}
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-sm transition-colors"
+            >
+              <Download size={14} />
+              Export PDF
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 top-10 bg-gray-900 border border-gray-700 rounded-xl p-4 z-50 w-64">
+                <p className="text-xs text-gray-400 mb-3">Vyberte co exportovat:</p>
+                {[
+                  { key: 'leady_zdroje' as const, label: 'Leady dle zdroje' },
+                  { key: 'rozlozeni' as const, label: 'Rozložení zdrojů (%)' },
+                  { key: 'vyvoj' as const, label: 'Vývoj leadů a prodejů' },
+                  { key: 'vynosy' as const, label: 'Výnos p.a. dle nemovitosti' },
+                  { key: 'portfolio' as const, label: 'Hodnota portfolia' },
+                  { key: 'transakce' as const, label: 'Uzavřené transakce' },
+                ].map(item => (
+                  <label key={item.key} className="flex items-center gap-2 py-1.5 cursor-pointer hover:text-white text-sm text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={exportItems[item.key]}
+                      onChange={e => setExportItems(p => ({ ...p, [item.key]: e.target.checked }))}
+                      className="accent-indigo-500"
+                    />
+                    {item.label}
+                  </label>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExportMenu(false)
+                    window.print()
+                  }}
+                  className="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors"
+                >
+                  Exportovat vybrané
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-6 no-print">
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Období</label>
             <div className="flex gap-1">
@@ -153,7 +201,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 gap-6">
 
           {/* Leady dle zdroje */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-leady_zdroje" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.leady_zdroje ? 'print:hidden' : ''}`}>
             <h2 className="text-sm font-medium mb-4 text-gray-300">Leady dle zdroje</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={leadsBarData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -170,7 +218,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Leady dle zdroje - koláč */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-rozlozeni" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.rozlozeni ? 'print:hidden' : ''}`}>
             <h2 className="text-sm font-medium mb-4 text-gray-300">Rozložení zdrojů (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -195,7 +243,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Vývoj aktivit */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-vyvoj" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.vyvoj ? 'print:hidden' : ''}`}>
             <h2 className="text-sm font-medium mb-4 text-gray-300">Vývoj leadů a prodejů (6 měsíců)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={MONTHLY_ACTIVITY} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
@@ -211,7 +259,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Výnosy nemovitostí */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-vynosy" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.vynosy ? 'print:hidden' : ''}`}>
             <h2 className="text-sm font-medium mb-4 text-gray-300">Výnos p.a. dle nemovitosti (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={YIELD_DATA} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
@@ -224,7 +272,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Portfolio hodnota dle typu */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+          <div id="export-portfolio" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2 ${!exportItems.portfolio ? 'print:hidden' : ''}`}>
             <h2 className="text-sm font-medium mb-4 text-gray-300">Hodnota portfolia dle typu nemovitosti</h2>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={PORTFOLIO_BY_TYPE} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
@@ -236,37 +284,37 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Prodeje */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
-            <h2 className="text-sm font-medium mb-4 text-gray-300">Prodeje a objem transakcí</h2>
-            <div className="grid grid-cols-4 gap-3 mb-5">
-              {SALES_SUMMARY.map(s => (
-                <div key={s.label} className="bg-gray-800 rounded-lg p-3">
-                  <p className="text-xs text-gray-500">{s.label}</p>
-                  <p className={`text-xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-                </div>
-              ))}
+          {/* Prodeje + uzavřené transakce (export-transakce) */}
+          <div id="export-transakce" className={`col-span-2 space-y-6 ${!exportItems.transakce ? 'print:hidden' : ''}`}>
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+              <h2 className="text-sm font-medium mb-4 text-gray-300">Prodeje a objem transakcí</h2>
+              <div className="grid grid-cols-4 gap-3 mb-5">
+                {SALES_SUMMARY.map(s => (
+                  <div key={s.label} className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-xs text-gray-500">{s.label}</p>
+                    <p className={`text-xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={SALES_DATA} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
+                  <XAxis dataKey="mesic" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                  <YAxis tickFormatter={v => v === 0 ? '0' : `${(v / 1000000).toFixed(1)}M`} tick={{ fontSize: 11, fill: '#6b7280' }} />
+                  <Tooltip
+                    contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
+                    formatter={(v) => {
+                      const n = typeof v === 'number' ? v : Number(v)
+                      return [`${(n / 1000000).toFixed(1)}M Kč`, 'Objem']
+                    }}
+                  />
+                  <Bar dataKey="objem" name="Objem prodejů" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={SALES_DATA} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
-                <XAxis dataKey="mesic" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                <YAxis tickFormatter={v => v === 0 ? '0' : `${(v / 1000000).toFixed(1)}M`} tick={{ fontSize: 11, fill: '#6b7280' }} />
-                <Tooltip
-                  contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
-                  formatter={(v) => {
-                    const n = typeof v === 'number' ? v : Number(v)
-                    return [`${(n / 1000000).toFixed(1)}M Kč`, 'Objem']
-                  }}
-                />
-                <Bar dataKey="objem" name="Objem prodejů" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
 
-          {/* Detailní transakce */}
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
-            <h2 className="text-sm font-medium mb-4 text-gray-300">Uzavřené transakce</h2>
-            <table className="w-full text-sm">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+              <h2 className="text-sm font-medium mb-4 text-gray-300">Uzavřené transakce</h2>
+              <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-gray-500 border-b border-gray-800">
                   <th className="text-left pb-2">Nemovitost</th>
@@ -300,7 +348,8 @@ export default function AnalyticsPage() {
                   <td></td>
                 </tr>
               </tfoot>
-            </table>
+              </table>
+            </div>
           </div>
 
         </div>
