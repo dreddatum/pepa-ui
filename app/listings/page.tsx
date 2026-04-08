@@ -294,14 +294,14 @@ export default function ListingsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2 mt-3">
               <Link
-                href={`/contracts?type=kupni&property=${encodeURIComponent(selectedListing.code)}`}
+                href={`/contracts?type=kupni&property=${encodeURIComponent(selectedListing.code)}&propertyName=${encodeURIComponent(selectedListing.name)}&district=${encodeURIComponent(selectedListing.district)}&price=${selectedListing.price}`}
                 className="bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm transition-colors text-center"
                 onClick={() => setSelectedListing(null)}
               >
                 Připravit smlouvu
               </Link>
               <Link
-                href={`/contracts?type=rezervace&property=${encodeURIComponent(selectedListing.code)}`}
+                href={`/contracts?type=rezervace&property=${encodeURIComponent(selectedListing.code)}&propertyName=${encodeURIComponent(selectedListing.name)}&district=${encodeURIComponent(selectedListing.district)}&price=${selectedListing.price}`}
                 className="bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors text-center"
                 onClick={() => setSelectedListing(null)}
               >

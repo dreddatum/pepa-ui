@@ -242,6 +242,51 @@ V Praze dne: ___________________________
 Vlastník: ___________________________    Správce: ___________________________`,
 }
 
+const formatPriceNumber = (value?: string | null) => {
+  if (!value) return ''
+  const num = Number(value)
+  if (Number.isNaN(num)) return value
+  return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(num)
+}
+
+const prefillTemplate = (
+  template: string,
+  type: string,
+  params: { property?: string | null; propertyName?: string | null; district?: string | null; price?: string | null; lead?: string | null },
+) => {
+  const propertyCode = params.property || ''
+  const propertyName = params.propertyName || ''
+  const district = params.district || ''
+  const lead = params.lead || ''
+  const price = formatPriceNumber(params.price)
+
+  let result = template
+
+  if (type === 'rezervace') {
+    const addressText = [propertyCode, propertyName, district].filter(Boolean).join(' · ')
+    result = result
+      .replace('Kupující:\nJméno/Firma: ___________________________', `Kupující:\nJméno/Firma: ${lead || '___________________________'}`)
+      .replace('Adresa: ___________________________\nLV č.:', `Adresa: ${addressText || '___________________________'}\nLV č.:`)
+      .replace('Katastrální území: ___________________________', `Katastrální území: ${district || '___________________________'}`)
+      .replace(
+        'Kupující se zavazuje uhradit rezervační zálohu ve výši: ___________ Kč',
+        `Kupující se zavazuje uhradit rezervační zálohu ve výši: ${price ? `${price} Kč` : '___________ Kč'}`,
+      )
+  } else if (type === 'kupni') {
+    const addressText = [propertyName, district].filter(Boolean).join(' · ')
+    result = result
+      .replace('Kupující:\nJméno/Firma: ___________________________', `Kupující:\nJméno/Firma: ${lead || '___________________________'}`)
+      .replace('- Byt/dům/pozemek č.: ___________________________', `- Byt/dům/pozemek č.: ${propertyCode || '___________________________'}`)
+      .replace('- Adresa: ___________________________', `- Adresa: ${addressText || '___________________________'}`)
+      .replace(
+        'Smluvní strany se dohodly na kupní ceně: ___________ Kč (slovy: ___________________________)',
+        `Smluvní strany se dohodly na kupní ceně: ${price ? `${price} Kč` : '___________ Kč'} (slovy: ___________________________)`,
+      )
+  }
+
+  return result
+}
+
 export default function ContractsPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [templateText, setTemplateText] = useState('')
@@ -251,6 +296,9 @@ export default function ContractsPage() {
     const params = new URLSearchParams(window.location.search)
     const requestedType = params.get('type')
     const property = params.get('property')
+    const propertyName = params.get('propertyName')
+    const district = params.get('district')
+    const price = params.get('price')
     const lead = params.get('lead')
 
     const validType = requestedType && CONTRACT_TYPES.some(t => t.id === requestedType)
@@ -259,9 +307,7 @@ export default function ContractsPage() {
 
     if (validType) {
       const base = TEMPLATES[validType]
-      let prefilled = base
-      if (lead) prefilled += `\n\nKlient: ${lead}`
-      if (property) prefilled += `\nNemovitost: ${property}`
+      const prefilled = prefillTemplate(base, validType, { property, propertyName, district, price, lead })
       setSelected(validType)
       setTemplateText(prefilled)
     }
