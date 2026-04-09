@@ -159,16 +159,20 @@ export default function NotesPage() {
   const generateSummary = async (transcript: string) => {
     setGenerating(true)
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/agent', {
         method: 'POST',
-        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Shrň tuto poznámku ze schůzky do 1 věty s klíčovými body: "${transcript}"`,
+          message: `Shrň tuto poznámku ze schůzky do 1 věty s klíčovými body (jen text, žádné HTML, žádné grafy): "${transcript}"`,
         }),
       })
-      const data = await res.json() as { response?: string }
-      return data.response?.replace(/<[^>]*>/g, '') || transcript.substring(0, 100)
+      const data = await res.json()
+      const text =
+        data.response
+          ?.replace(/<[^>]*>/g, '')
+          ?.replace(/\[CHART_URL:[^\]]*\]/g, '')
+          ?.trim() || transcript.substring(0, 100)
+      return text
     } catch {
       return transcript.substring(0, 100)
     } finally {
