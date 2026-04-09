@@ -20,6 +20,35 @@ const NAV_ITEMS = [
   { href: '/settings', icon: Settings, label: 'Nastavení' },
 ]
 
+export function MobileBottomNav() {
+  const pathname = usePathname()
+
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 z-50">
+      <Link href="/" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${pathname === '/' ? 'text-indigo-400' : 'text-gray-500'}`}>
+        <MessageSquare size={20} />
+        <span className="text-xs">Chat</span>
+      </Link>
+      <Link href="/dashboard" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${pathname === '/dashboard' ? 'text-indigo-400' : 'text-gray-500'}`}>
+        <LayoutDashboard size={20} />
+        <span className="text-xs">Dashboard</span>
+      </Link>
+      <Link href="/listings" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${pathname === '/listings' ? 'text-indigo-400' : 'text-gray-500'}`}>
+        <Building2 size={20} />
+        <span className="text-xs">Inzeráty</span>
+      </Link>
+      <Link href="/leads" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${pathname === '/leads' ? 'text-indigo-400' : 'text-gray-500'}`}>
+        <Users size={20} />
+        <span className="text-xs">Leady</span>
+      </Link>
+      <Link href="/analytics" className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${pathname === '/analytics' ? 'text-indigo-400' : 'text-gray-500'}`}>
+        <BarChart2 size={20} />
+        <span className="text-xs">Analytika</span>
+      </Link>
+    </div>
+  )
+}
+
 export default function SidebarNav() {
   const pathname = usePathname()
 
