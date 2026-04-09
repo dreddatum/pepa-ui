@@ -115,6 +115,57 @@ export default function AnalyticsPage() {
 
   const leadsBarData = chartType === 'source' ? LEADS_BY_SOURCE : chartType === 'status' ? LEADS_BY_STATUS : LEADS_BY_BUDGET
 
+  const exportPDF = async () => {
+    setShowExportMenu(false)
+    // @ts-expect-error - package has no bundled TypeScript declarations
+    const domtoimage = await import('dom-to-image-more')
+    const { jsPDF } = await import('jspdf')
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pageWidth = 210
+    const margin = 10
+    let y = 15
+
+    doc.setFillColor(79, 70, 229)
+    doc.rect(0, 0, 210, 12, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(10)
+    doc.text('Pepa Agent — Analytika portfolia', margin, 8)
+    doc.text(new Date().toLocaleDateString('cs-CZ'), 175, 8)
+    doc.setTextColor(0, 0, 0)
+
+    const selectedKeys = Object.entries(exportItems)
+      .filter(([, checked]) => checked)
+      .map(([key]) => key)
+
+    for (const key of selectedKeys) {
+      const el = document.getElementById(`export-${key}`)
+      if (!el) continue
+
+      const dataUrl = await domtoimage.default.toPng(el, {
+        bgcolor: '#111827',
+        scale: 2,
+      })
+
+      const img = new Image()
+      img.src = dataUrl
+      await new Promise<void>((resolve) => { img.onload = () => resolve() })
+
+      const imgWidth = pageWidth - margin * 2
+      const imgHeight = (img.height * imgWidth) / img.width
+
+      if (y + imgHeight > 287) {
+        doc.addPage()
+        y = 15
+      }
+
+      doc.addImage(dataUrl, 'PNG', margin, y, imgWidth, imgHeight)
+      y += imgHeight + 5
+    }
+
+    doc.save('analytika-pepa.pdf')
+  }
+
   return (
     <div className="h-screen overflow-y-auto bg-gray-950 text-white p-6" id="analytics-content">
       <div className="max-w-7xl mx-auto flex-1 overflow-y-auto p-6">
@@ -152,10 +203,7 @@ export default function AnalyticsPage() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowExportMenu(false)
-                    window.print()
-                  }}
+                  onClick={() => void exportPDF()}
                   className="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition-colors"
                 >
                   Exportovat vybrané
@@ -201,7 +249,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 gap-6">
 
           {/* Leady dle zdroje */}
-          <div id="export-leady_zdroje" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.leady_zdroje ? 'print:hidden' : ''}`}>
+          <div id="export-leady_zdroje" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Leady dle zdroje</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={leadsBarData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -218,7 +266,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Leady dle zdroje - koláč */}
-          <div id="export-rozlozeni" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.rozlozeni ? 'print:hidden' : ''}`}>
+          <div id="export-rozlozeni" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Rozložení zdrojů (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -243,7 +291,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Vývoj aktivit */}
-          <div id="export-vyvoj" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.vyvoj ? 'print:hidden' : ''}`}>
+          <div id="export-vyvoj" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Vývoj leadů a prodejů (6 měsíců)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={MONTHLY_ACTIVITY} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
@@ -259,7 +307,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Výnosy nemovitostí */}
-          <div id="export-vynosy" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${!exportItems.vynosy ? 'print:hidden' : ''}`}>
+          <div id="export-vynosy" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Výnos p.a. dle nemovitosti (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={YIELD_DATA} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
@@ -272,7 +320,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Portfolio hodnota dle typu */}
-          <div id="export-portfolio" className={`bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2 ${!exportItems.portfolio ? 'print:hidden' : ''}`}>
+          <div id="export-portfolio" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Hodnota portfolia dle typu nemovitosti</h2>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={PORTFOLIO_BY_TYPE} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
@@ -285,8 +333,8 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Prodeje + uzavřené transakce (export-transakce) */}
-          <div id="export-transakce" className={`col-span-2 space-y-6 ${!exportItems.transakce ? 'print:hidden' : ''}`}>
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-transakce" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+            <div>
               <h2 className="text-sm font-medium mb-4 text-gray-300">Prodeje a objem transakcí</h2>
               <div className="grid grid-cols-4 gap-3 mb-5">
                 {SALES_SUMMARY.map(s => (
@@ -312,7 +360,7 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+            <div className="mt-6">
               <h2 className="text-sm font-medium mb-4 text-gray-300">Uzavřené transakce</h2>
               <table className="w-full text-sm">
               <thead>

@@ -100,12 +100,21 @@ export default function Home() {
   }
 
   const parseChartUrl = (content: string) => {
-    const match = content.match(/\[CHART_URL:(.*?)\]/)
-    return match ? match[1] : null
+    const start = content.indexOf('[CHART_URL:')
+    if (start === -1) return null
+    const end = content.indexOf(']', start + 11)
+    if (end === -1) return null
+    return content.substring(start + 11, end)
   }
 
   const stripChartUrl = (content: string) => {
-    return content.replace(/\[CHART_URL:.*?\]/, '').trim()
+    const start = content.indexOf('[CHART_URL:')
+    if (start === -1) return content.replace(/\}\]\s*$/g, '').trim()
+    const end = content.indexOf(']', start + 11)
+    if (end === -1) return content
+    return (content.substring(0, start) + content.substring(end + 1))
+      .replace(/\}\]\s*$/g, '')
+      .trim()
   }
 
   const parseChart = (content: string) => {
@@ -166,7 +175,7 @@ export default function Home() {
             </div>
             <div className={`max-w-[75%] flex flex-col gap-1 ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === 'assistant' ? 'bg-gray-800 text-gray-100 rounded-tl-sm' : 'bg-indigo-600 text-white rounded-tr-sm'}`}>
-                <div dangerouslySetInnerHTML={{ __html: stripChartUrl(message.content) }} />
+                <div dangerouslySetInnerHTML={{ __html: stripChartUrl(message.content).replace(/\[CHART:[\s\S]*?\]/g, '') }} />
                 {message.role === 'assistant' && (() => {
                   const chart = parseChart(message.content)
                   if (!chart?.data?.length) return null
