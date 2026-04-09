@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, LayoutDashboard, MessageSquare, Phone, Users, FileText, BarChart2, Calendar, MonitorPlay, Search, Mic, Plus } from 'lucide-react'
+import { Building2, LayoutDashboard, MessageSquare, Phone, Users, FileText, BarChart2, Calendar, MonitorPlay, Search, Mic, Plus, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/', icon: MessageSquare, label: 'Chat s Pepou', exact: true },
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/leads', icon: Users, label: 'Pipeline leadů' },
   { href: '/admin', icon: Plus, label: 'Přidat data' },
   { href: '/contracts', icon: FileText, label: 'Návrhy smluv' },
+  { href: '/settings', icon: Settings, label: 'Nastavení' },
 ]
 
 export default function SidebarNav() {
