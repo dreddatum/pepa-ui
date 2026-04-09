@@ -29,7 +29,7 @@ export default function SidebarNav() {
   }
 
   return (
-    <div className="w-56 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
+    <div className="w-56 bg-gradient-to-b from-gray-900 to-gray-950 border-r border-gray-800/50 flex flex-col flex-shrink-0">
       <div className="px-4 py-5 border-b border-gray-800">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">

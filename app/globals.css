@@ -29,3 +29,10 @@ body {
   aside, nav, button, .no-print, header { display: none !important; }
   body { background: #030712 !important; }
 }
+
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #111827 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px !important;
+  color: #f3f4f6 !important;
+}

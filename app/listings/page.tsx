@@ -22,6 +22,20 @@ const LISTINGS = [
   { code: 'PRG-020', name: 'Nájemní byt Holešovice Premium', type: 'byt', status: 'aktivni', district: 'Praha 7 - Holešovice', area: 91, price: 12000000, rent: 36000, yield: 3.76, floor: '2/6', energy: 'B', condition: 'vyborny', tags: ['smart', 'premium'] },
 ]
 
+const LISTING_DESCRIPTIONS: Record<string, string> = {
+  'PRG-001': 'Bytový dům ve výborné lokalitě Holešovic. Kompletní rekonstrukce 2021, nová elektřina, rozvody vody. Stabilní nájemní výnos 3,43% p.a. s dlouhodobými nájemníky. Výborná dopravní dostupnost — metro C, tram. Volné k okamžitému pronájmu.',
+  'PRG-002': 'Komerční prostory v prémiové lokalitě Žižkov. Otevřený půdorys 245 m², klimatizace, recepce, 2× WC. Stávající nájemce — IT firma, smlouva do 2027. Výnos 4,81% p.a. Ideální pro investora hledajícího stabilní cash-flow.',
+  'PRG-003': 'Reprezentativní rodinný dům ve Vinohrady. Plocha 195 m², zahrada 280 m², garáž pro 2 auta. Historická fasáda, moderní interiér — rekonstrukce 2022. Energetická třída A. Exkluzivní lokalita, omezená nabídka.',
+  'PRG-005': 'Unikátní loftový prostor v bývalé továrně Holešovic. Stropy 4,2 m, původní cihlová zeď, polévané betonové podlahy. Plocha 320 m², možnost dělení. Výnos 4,86% p.a. Oblíbená lokalita pro kreativní agentury a tech firmy.',
+  'PRG-007': 'Garsoniera v klidné části Dejvic. Rekonstrukce 2023: nové jádro, kuchyňská linka na míru, plovoucí podlaha. Orientace na Jih, balkón 4 m². Výnos 3,83% p.a. Ideální pro mladé profesionály nebo jako investiční byt.',
+  'PRG-009': 'Prostorný byt 3+1 v Nuslich. Plocha 84 m², lodžie, sklep, garážové stání. Částečná rekonstrukce 2020. Klidná ulice, MHD 200 m, škola 300 m. Výnos 3,79% p.a. Vhodný pro rodiny.',
+  'PRG-010': 'Exkluzivní penthouse s panoramatickým výhledem na Prahu. Plocha 155 m², terasa 45 m², smart home systém. Novostavba 2024, energetická třída A+. Soukromý výtah, concierge. Prémiová adresa Pankrác.',
+  'PRG-011': 'Moderní byt 1+kk o ploše 41 m² v novostavbě Holešovic. Kompletní vybavení, kuchyňská linka na míru. Orientace na Jih. Výnos 4,17% p.a. Balkón 6 m², sklep. Volné ihned.',
+  'PRG-013': 'Kancelářské prostory třídy A v Karlíně. Plocha 175 m², LEED certifikace, vzduchotechnika, zasedací místnost. Nájemce — konzultantská firma, smlouva do 2026. Výnos 4,11% p.a.',
+  'PRG-015': 'Represantativní dům na Karlově náměstí. Plocha 420 m², 5 bytových jednotek + komerční přízemí. Historická budova po kompletní rekonstrukci 2019. Výnos portfolia 3,8% p.a. Unikátní investiční příležitost.',
+  'PRG-020': 'Prémiový nájemní byt v Holešovicích. Plocha 91 m², 3+kk, terasa 12 m². Smart home, podlahové topení, kuchyňská linka Bulthaup. Výnos 3,76% p.a. Dlouhodobý nájemce, smlouva do 2026.',
+}
+
 const TYPE_LABELS: Record<string, string> = {
   byt: 'Byt', dum: 'Dům', komerci: 'Komerční', pozemek: 'Pozemek', garaz: 'Garáž'
 }
@@ -143,7 +157,7 @@ export default function ListingsPage() {
             <div
               key={listing.code}
               onClick={() => setSelectedListing(listing)}
-              className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-600 transition-colors cursor-pointer"
+              className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-600 hover:shadow-lg transition-all cursor-pointer shadow-md"
             >
               <div className="bg-gray-800 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -259,6 +273,12 @@ export default function ListingsPage() {
                   <p className="text-xs text-gray-500">Výnos p.a.</p>
                   <p className="text-sm font-medium text-amber-400">{selectedListing.yield}%</p>
                 </div>
+              </div>
+            )}
+            {LISTING_DESCRIPTIONS[selectedListing.code] && (
+              <div className="bg-gray-800 rounded-lg p-3 mb-4">
+                <p className="text-xs text-gray-500 mb-1">AI popis nemovitosti</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{LISTING_DESCRIPTIONS[selectedListing.code]}</p>
               </div>
             )}
             <div className="flex flex-wrap gap-1 mb-4">

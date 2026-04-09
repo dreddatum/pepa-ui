@@ -249,7 +249,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 gap-6">
 
           {/* Leady dle zdroje */}
-          <div id="export-leady_zdroje" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-leady_zdroje" className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Leady dle zdroje</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={leadsBarData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Leady dle zdroje - koláč */}
-          <div id="export-rozlozeni" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-rozlozeni" className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Rozložení zdrojů (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -291,7 +291,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Vývoj aktivit */}
-          <div id="export-vyvoj" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-vyvoj" className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Vývoj leadů a prodejů (6 měsíců)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={MONTHLY_ACTIVITY} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
@@ -307,7 +307,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Výnosy nemovitostí */}
-          <div id="export-vynosy" className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <div id="export-vynosy" className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Výnos p.a. dle nemovitosti (%)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={YIELD_DATA} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
@@ -320,7 +320,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Portfolio hodnota dle typu */}
-          <div id="export-portfolio" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+          <div id="export-portfolio" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2 shadow-md">
             <h2 className="text-sm font-medium mb-4 text-gray-300">Hodnota portfolia dle typu nemovitosti</h2>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={PORTFOLIO_BY_TYPE} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
@@ -333,7 +333,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Prodeje + uzavřené transakce (export-transakce) */}
-          <div id="export-transakce" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2">
+          <div id="export-transakce" className="bg-gray-900 rounded-xl border border-gray-800 p-5 col-span-2 shadow-md">
             <div>
               <h2 className="text-sm font-medium mb-4 text-gray-300">Prodeje a objem transakcí</h2>
               <div className="grid grid-cols-4 gap-3 mb-5">
@@ -349,7 +349,13 @@ export default function AnalyticsPage() {
                   <XAxis dataKey="mesic" tick={{ fontSize: 11, fill: '#6b7280' }} />
                   <YAxis tickFormatter={v => v === 0 ? '0' : `${(v / 1000000).toFixed(1)}M`} tick={{ fontSize: 11, fill: '#6b7280' }} />
                   <Tooltip
-                    contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '12px' }}
+                    contentStyle={{
+                      background: '#111827',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      color: '#f3f4f6',
+                    }}
                     formatter={(v) => {
                       const n = typeof v === 'number' ? v : Number(v)
                       return [`${(n / 1000000).toFixed(1)}M Kč`, 'Objem']

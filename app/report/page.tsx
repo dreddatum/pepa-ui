@@ -99,7 +99,15 @@ export default function ReportPage() {
             <BarChart data={REPORT_DATA.leads_by_source}>
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6b7280' }} />
               <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: 'none', fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  background: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#f3f4f6',
+                }}
+              />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {REPORT_DATA.leads_by_source.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -116,7 +124,15 @@ export default function ReportPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="mesic" tick={{ fontSize: 10, fill: '#6b7280' }} />
               <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: 'none', fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  background: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#f3f4f6',
+                }}
+              />
               <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
               <Line type="monotone" dataKey="leady" name="Leady" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="prodeje" name="Prodeje" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
@@ -133,7 +149,13 @@ export default function ReportPage() {
               <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} />
               <YAxis tickFormatter={(v) => `${v}M`} tick={{ fontSize: 11, fill: '#6b7280' }} />
               <Tooltip
-                contentStyle={{ background: '#1f2937', border: 'none', fontSize: 12 }}
+                contentStyle={{
+                  background: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#f3f4f6',
+                }}
                 formatter={(v) => [`${Number(v ?? 0)}M Kč`, 'Hodnota']}
               />
               <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
@@ -150,7 +172,15 @@ export default function ReportPage() {
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ background: '#1f2937', border: 'none', fontSize: 11 }} />
+              <Tooltip
+                contentStyle={{
+                  background: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#f3f4f6',
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>

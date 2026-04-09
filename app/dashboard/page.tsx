@@ -1,211 +1,134 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Building2, Users, TrendingUp, AlertCircle, Calendar, Phone, ArrowRight, CheckCircle, Clock } from 'lucide-react'
+import { TrendingUp, AlertCircle, Calendar, Phone, Users, ArrowUp, FileText } from 'lucide-react'
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-const STATS = [
-  { label: 'Aktivní nemovitosti', value: '11', sub: 'z 20 celkem', color: 'text-indigo-400', bg: 'bg-indigo-950 border-indigo-800', href: '/listings' },
-  { label: 'Hodnota portfolia', value: '114,5M', sub: 'Kč · aktuální ocenění', color: 'text-green-400', bg: 'bg-green-950 border-green-800', href: '/listings' },
-  { label: 'Aktivní leady', value: '17', sub: '3 aktivně v jednání', color: 'text-amber-400', bg: 'bg-amber-950 border-amber-800', href: '/leads' },
-  { label: 'Průměrný výnos', value: '3,95%', sub: 'p.a. · portfolio', color: 'text-blue-400', bg: 'bg-blue-950 border-blue-800', href: '/analytics' },
-  { label: 'Schůzky tento týden', value: '4', sub: '2 potvrzené', color: 'text-purple-400', bg: 'bg-purple-950 border-purple-800', href: '/calendar' },
-  { label: 'Prošlé follow-upy', value: '15', sub: 'vyžadují akci', color: 'text-red-400', bg: 'bg-red-950 border-red-800', href: '/leads' },
+const SALES_TREND = [
+  { mesic: 'Led', value: 2 },
+  { mesic: 'Úno', value: 3 },
+  { mesic: 'Bře', value: 2 },
+  { mesic: 'Dub', value: 4 },
+  { mesic: 'Kvě', value: 3 },
+  { mesic: 'Čvn', value: 5 },
 ]
 
-const AUDIT_ITEMS = [
-  { code: 'PRG-006', name: 'Byt Žižkov 2+kk', issue: 'Chybí energetická třída, stav', priority: 'KRITICKÉ', color: 'text-red-400' },
-  { code: 'PRG-014', name: 'Pozemek Zbraslav', issue: 'Chybí ocenění, adresa', priority: 'KRITICKÉ', color: 'text-red-400' },
-  { code: 'PRG-012', name: 'Rodinný dům Řepy', issue: 'Chybí pořizovací cena', priority: 'VYSOKÉ', color: 'text-amber-400' },
+const RECENT_ACTIVITY = [
+  { icon: Users, label: 'Nová poptávka', desc: 'Byt 3+kk, Praha 7 — Holešovice', time: 'před 10 min', color: 'text-green-400', bg: 'bg-green-400/10' },
+  { icon: Calendar, label: 'Prohlídka naplánována', desc: 'PRG-005 Loftový prostor, Holešovice', time: 'před 2 h', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+  { icon: FileText, label: 'Smlouva odeslána', desc: 'Rezervační smlouva — Ing. Kratochvíl', time: 'před 5 h', color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+  { icon: Phone, label: 'Hovor zaznamenán', desc: 'Vladimír Novotný — PRG-002 vyjednávání', time: 'před 6 h', color: 'text-amber-400', bg: 'bg-amber-400/10' },
+  { icon: AlertCircle, label: 'Audit upozornění', desc: 'PRG-006 chybí energetická třída', time: 'dnes 8:00', color: 'text-red-400', bg: 'bg-red-400/10' },
 ]
 
-const UPCOMING = [
-  { client: 'Barbora Hovorková', property: 'PRG-020', date: '10.4.', time: '10:00', status: 'confirmed' },
-  { client: 'Ing. Pavel Kratochvíl', property: 'PRG-005', date: '12.4.', time: '14:00', status: 'confirmed' },
-  { client: 'Dr. Věra Procházková', property: 'PRG-003', date: '14.4.', time: '11:00', status: 'pending' },
-  { client: 'Vladimír Novotný', property: 'PRG-002', date: '15.4.', time: '09:00', status: 'confirmed' },
-]
-
-const RECENT_CALLS = [
-  { client: 'Ing. Pavel Kratochvíl', note: 'Zájem o PRG-005, čeká na hypotéku', time: 'dnes 10:12' },
-  { client: 'Vladimír Novotný', note: 'Vyjednávání ceny PRG-002', time: 'včera 15:30' },
-  { client: 'MUDr. Ondřej Fiala', note: 'Zájem o komerční prostory', time: 'včera 11:00' },
-]
-
-const TOP_LEADS = [
-  { name: 'Ing. Radek Horálek', company: 'Penta Investments', budget: '50–100M Kč', score: 10 },
-  { name: 'Ing. Pavel Kratochvíl', company: 'InvestCorp', budget: '15–25M Kč', score: 9 },
-  { name: 'Vladimír Novotný', company: 'Novotný Real', budget: '18–28M Kč', score: 9 },
+const TOP_PROPERTIES = [
+  { code: 'PRG-005', name: 'Loftový prostor Holešovice', price: '22,5M Kč', yield: '4,86%', interest: '+18% zájem', img: '🏭' },
+  { code: 'PRG-009', name: 'Byt Pařížská, Staré Město', price: '45,0M Kč', yield: '4,1%', interest: '+24% zájem', img: '🏛' },
+  { code: 'PRG-013', name: 'Kancelář Karlín LEED', price: '21,0M Kč', yield: '4,11%', interest: '+12% zájem', img: '🏢' },
 ]
 
 export default function DashboardPage() {
   const router = useRouter()
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-6 bg-gray-950">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold">Dashboard</h2>
+        <h2 className="text-xl font-semibold">Přehled</h2>
         <p className="text-xs text-gray-500">{new Date().toLocaleDateString('cs-CZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {STATS.map(stat => (
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'Nových poptávek', value: '12', sub: '+20% tento týden', icon: Users, color: 'text-green-400', border: 'border-green-400/30', href: '/leads' },
+          { label: 'Aktivních obchodů', value: '8', sub: '+14% tento týden', icon: TrendingUp, color: 'text-indigo-400', border: 'border-indigo-400/30', href: '/analytics' },
+          { label: 'Úkolů k vyřízení', value: '24', sub: '+12% tento týden', icon: AlertCircle, color: 'text-amber-400', border: 'border-amber-400/30', href: '/leads' },
+        ].map(stat => (
           <button
             key={stat.label}
             type="button"
             onClick={() => router.push(stat.href)}
-            className={`${stat.bg} border rounded-xl p-4 text-left hover:opacity-80 transition-opacity group`}
+            className={`bg-gray-900 rounded-xl p-5 border ${stat.border} text-left hover:opacity-80 transition-opacity group shadow-md`}
           >
-            <p className="text-xs text-gray-400 mb-1">{stat.label}</p>
-            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-xs text-gray-500">{stat.sub}</p>
-              <ArrowRight size={12} className="text-gray-600 group-hover:text-gray-400 transition-colors" />
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-gray-400">{stat.label}</p>
+              <stat.icon size={16} className={stat.color} />
+            </div>
+            <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+            <div className="flex items-center gap-1 mt-2">
+              <ArrowUp size={12} className="text-green-400" />
+              <p className="text-xs text-green-400">{stat.sub}</p>
             </div>
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {/* Audit */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle size={14} className="text-amber-400" />
-              <span className="text-sm font-medium">Audit dat</span>
-            </div>
-            <button type="button" onClick={() => router.push('/')} className="text-xs text-indigo-400 hover:text-indigo-300">Řešit →</button>
-          </div>
-          <div className="space-y-2">
-            {AUDIT_ITEMS.map(item => (
-              <div key={item.code} className="bg-gray-800 rounded-lg p-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-indigo-400">{item.code}</span>
-                  <span className={`text-xs ${item.color}`}>{item.priority}</span>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">{item.issue}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Nadcházející schůzky */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Calendar size={14} className="text-indigo-400" />
-              <span className="text-sm font-medium">Schůzky</span>
-            </div>
-            <button type="button" onClick={() => router.push('/calendar')} className="text-xs text-indigo-400 hover:text-indigo-300">Vše →</button>
-          </div>
-          <div className="space-y-2">
-            {UPCOMING.map((m, i) => (
-              <div key={i} className="bg-gray-800 rounded-lg p-2 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium">{m.client}</p>
-                  <p className="text-xs text-gray-500">{m.property} · {m.date} {m.time}</p>
-                </div>
-                {m.status === 'confirmed'
-                  ? <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
-                  : <Clock size={14} className="text-amber-400 flex-shrink-0" />
-                }
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Top leady */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Users size={14} className="text-green-400" />
-              <span className="text-sm font-medium">Top leady</span>
-            </div>
-            <button type="button" onClick={() => router.push('/leads')} className="text-xs text-indigo-400 hover:text-indigo-300">Vše →</button>
-          </div>
-          <div className="space-y-2">
-            {TOP_LEADS.map((lead, i) => (
-              <div key={i} className="bg-gray-800 rounded-lg p-2 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium">{lead.name}</p>
-                  <p className="text-xs text-gray-500">{lead.company} · {lead.budget}</p>
-                </div>
-                <span className="text-xs bg-green-900 text-green-300 px-1.5 py-0.5 rounded-full font-bold">{lead.score}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Tržní data */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={14} className="text-green-400" />
-              <span className="text-sm font-medium">Trh Holešovice</span>
-            </div>
-            <button type="button" onClick={() => router.push('/analytics')} className="text-xs text-indigo-400 hover:text-indigo-300">Analytika →</button>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label: 'Průměr Kč/m²', value: '223 000 Kč', trend: '+25% YoY', up: true },
-              { label: 'Aktivní nabídky', value: '105', trend: '+12 tento týden', up: true },
-              { label: 'Průměrná doba', value: '34 dní', trend: '↓ ze 41 dní', up: true },
-            ].map(item => (
-              <div key={item.label} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
-                <span className="text-xs text-gray-400">{item.label}</span>
-                <div className="text-right">
-                  <span className="text-xs font-medium text-white">{item.value}</span>
-                  <span className="text-xs text-green-400 ml-2">{item.trend}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Poslední hovory */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Phone size={14} className="text-blue-400" />
-              <span className="text-sm font-medium">Poslední hovory</span>
-            </div>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-medium text-sm">Přehled aktivit</h3>
             <button type="button" onClick={() => router.push('/calls')} className="text-xs text-indigo-400 hover:text-indigo-300">Vše →</button>
           </div>
-          <div className="space-y-2">
-            {RECENT_CALLS.map((call, i) => (
-              <div key={i} className="bg-gray-800 rounded-lg p-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium">{call.client}</p>
-                  <span className="text-xs text-gray-600">{call.time}</span>
+          <div className="space-y-3">
+            {RECENT_ACTIVITY.map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center flex-shrink-0`}>
+                  <item.icon size={14} className={item.color} />
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">{call.note}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-xs text-gray-500 truncate">{item.desc}</p>
+                </div>
+                <span className="text-xs text-gray-600 flex-shrink-0">{item.time}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-          <p className="text-sm font-medium mb-3">Rychlé akce</p>
-          <div className="space-y-2">
-            {[
-              { label: '💬 Zeptat se Pepy', href: '/' },
-              { label: '📋 Nová schůzka', href: '/calendar' },
-              { label: '🎤 Nahrát poznámku', href: '/notes' },
-              { label: '📄 Vygenerovat report', href: '/report' },
-              { label: '🔍 Vyhledat klienta', href: '/search' },
-            ].map(action => (
-              <button
-                key={action.label}
-                type="button"
-                onClick={() => router.push(action.href)}
-                className="w-full text-left bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors flex items-center justify-between group"
-              >
-                {action.label}
-                <ArrowRight size={12} className="text-gray-600 group-hover:text-gray-400" />
-              </button>
-            ))}
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium text-sm">Výkon prodeje</h3>
+            <button type="button" onClick={() => router.push('/analytics')} className="text-xs text-indigo-400 hover:text-indigo-300">Analytika →</button>
           </div>
+          <div className="mb-1">
+            <p className="text-3xl font-bold text-green-400">+35%</p>
+            <p className="text-xs text-gray-500">tento měsíc</p>
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <LineChart data={SALES_TREND}>
+              <XAxis dataKey="mesic" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', fontSize: '11px' }}
+              />
+              <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 shadow-md">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-medium text-sm">Top nemovitosti</h3>
+          <button type="button" onClick={() => router.push('/listings')} className="text-xs text-indigo-400 hover:text-indigo-300">Všechny inzeráty →</button>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {TOP_PROPERTIES.map(prop => (
+            <button
+              key={prop.code}
+              type="button"
+              onClick={() => router.push('/listings')}
+              className="bg-gray-800 rounded-xl p-4 text-left hover:bg-gray-700 transition-colors group"
+            >
+              <div className="text-3xl mb-3">{prop.img}</div>
+              <p className="text-xs font-mono text-indigo-400 mb-1">{prop.code}</p>
+              <p className="text-sm font-medium mb-2 leading-tight">{prop.name}</p>
+              <p className="text-lg font-bold text-white">{prop.price}</p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-amber-400">{prop.yield} výnos</span>
+                <span className="text-xs text-green-400">{prop.interest}</span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
