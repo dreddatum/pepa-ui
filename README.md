@@ -1,37 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pepa — Agentic Back-Office System for Real Estate
 
-## Getting Started
+> Built solo during a competitive AI build challenge. Finished **Top 7**.
 
-First, run the development server:
+Pepa is a fully autonomous back-office agent for a real estate firm. 
+It handles email triage, scheduling, market monitoring, lead matching, 
+and weekly reporting — without human intervention.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What it does
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Email & Scheduling**
+- Reads incoming client emails, understands intent
+- Drafts replies with 3 available slots pulled from Google Calendar
+- After client confirms → creates calendar event + sends confirmation automatically
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Daily Market Intelligence**
+- Every morning scrapes Sreality.cz for new listings
+- Matches new properties against active buyer profiles in CRM
+- Sends personalized briefing to each broker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Weekly Executive Report**
+- Every Monday pulls performance data from Supabase
+- Generates charts via Python (Matplotlib)
+- Creates a 3-slide Google Slides presentation via API
+- Sends to management automatically
 
-## Learn More
+**Lead Matching**
+- When a new property is listed → finds top 3 matching leads from database
+- Suggests outreach with pre-drafted message
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
+Client Email → Gmail Trigger → n8n Agent → Intent Classification
+↓
+Google Calendar API (free slots)
+↓
+GPT-4o (draft reply) → Human approval → Send
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Sreality Scraper (Firecrawl) → n8n → Lead Matcher → Broker Briefing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Supabase (CRM data) → Python Charts → Google Slides API → Weekly Report
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Layer | Technology |
+|---|---|
+| Orchestration | n8n (4 autonomous workflows) |
+| AI Model | GPT-4o-mini |
+| Database | Supabase (PostgreSQL) |
+| Frontend | Next.js 15, TypeScript, Tailwind |
+| Scraping | Firecrawl API |
+| Integrations | Gmail, Google Calendar, Google Slides API |
+| Charts | Python (Matplotlib/Seaborn) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# pepa-ui
+## Live Demo
+
+[pepa.coredesk.cz](https://pepa.coredesk.cz)
+
+## Key decisions
+
+**Why n8n over LangChain?** Visual workflow builder allows rapid iteration 
+and easy handoff. Each workflow is independently testable and observable.
+
+**Why GPT-4o-mini?** Cost-performance balance for high-frequency tasks 
+(daily scraping, email triage). GPT-4o reserved for complex reasoning tasks.
+
+**Human-in-the-loop by design** — agent drafts, human approves before sending. 
+Critical for client-facing communications.
